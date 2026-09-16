@@ -6,6 +6,7 @@ import {
   validateFullPaymentBatch,
   validateSupplier,
 } from './payment-policy.js';
+import { canConfirmInvoices, canCreateInvoices, validateInvoice } from './invoice-policy.js';
 
 test('acepta un pago total de varias facturas del mismo tenant', () => {
   const total = validateFullPaymentBatch(
@@ -62,4 +63,24 @@ test('un operador de pagos puede proponer pero no confirmar pagos', () => {
       ),
     DomainRuleViolation,
   );
+});
+
+test('operador de carga puede crear facturas pero sólo admin puede confirmarlas', () => {
+  assert.equal(canCreateInvoices('OPERATOR_UPLOAD'), true);
+  assert.equal(canConfirmInvoices('OPERATOR_UPLOAD'), false);
+  assert.equal(canConfirmInvoices('ADMIN'), true);
+});
+
+test('distingue comprobantes fiscales e informales', () => {
+  assert.throws(
+    () => validateInvoice({
+      tenantId: 'tenant-a', supplierId: 'supplier-a', invoiceType: 'A', amountInCents: 100n,
+      dueDate: new Date('2026-10-01'),
+    }),
+    DomainRuleViolation,
+  );
+  assert.doesNotThrow(() => validateInvoice({
+    tenantId: 'tenant-a', supplierId: 'supplier-a', invoiceType: 'INFORMAL',
+    description: 'Servicio de flete', amountInCents: 100n, dueDate: new Date('2026-10-01'),
+  }));
 });

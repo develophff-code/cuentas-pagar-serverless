@@ -31,6 +31,21 @@ export interface SupplierInput {
   categoryCode?: string;
 }
 
+export const INVOICE_TYPES = ['A', 'C', 'INFORMAL'] as const;
+export type InvoiceType = (typeof INVOICE_TYPES)[number];
+
+export interface InvoiceInput {
+  tenantId: string;
+  supplierId: string;
+  invoiceType: InvoiceType;
+  invoiceNumber?: string;
+  description?: string;
+  amountInCents: bigint;
+  issueDate?: Date;
+  dueDate: Date;
+  scheduledPaymentDate?: Date;
+}
+
 export interface InvoiceForPayment {
   id: string;
   tenantId: string;
