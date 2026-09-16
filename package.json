@@ -1,0 +1,22 @@
+{
+  "name": "cuentas-pagar-serverless",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SaaS serverless de proveedores y cuentas a pagar",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
+    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js",
+    "build": "node ./node_modules/typescript/bin/tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "aws-cdk": "^2.0.0",
+    "aws-cdk-lib": "^2.0.0",
+    "constructs": "^10.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
