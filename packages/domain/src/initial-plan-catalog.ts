@@ -1,4 +1,4 @@
-import type { EditablePlanCapabilities, PlanCode } from './model.js';
+import type { EditablePlanCapabilities, PlanCode, PlanPriceVersion } from './model.js';
 
 /**
  * Valores de carga inicial. La aplicación debe persistirlos en PostgreSQL y
@@ -42,3 +42,25 @@ export const INITIAL_PLAN_CAPABILITIES: Readonly<Record<PlanCode, EditablePlanCa
     aiChatEnabled: true,
   },
 };
+
+/** Valores iniciales ARS. La base conserva la versión aceptada en cada orden. */
+export const INITIAL_PLAN_PRICES: readonly PlanPriceVersion[] = [
+  {
+    planCode: 'BASIC',
+    amountInCents: 2_800_000n,
+    currency: 'ARS',
+    validFrom: new Date('2026-09-16T00:00:00.000Z'),
+  },
+  {
+    planCode: 'PROFESSIONAL',
+    amountInCents: 8_200_000n,
+    currency: 'ARS',
+    validFrom: new Date('2026-09-16T00:00:00.000Z'),
+  },
+  {
+    planCode: 'ULTRA',
+    amountInCents: 14_400_000n,
+    currency: 'ARS',
+    validFrom: new Date('2026-09-16T00:00:00.000Z'),
+  },
+];

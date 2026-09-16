@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { DomainRuleViolation, validateFullPaymentBatch, validateSupplier } from './payment-policy.js';
+import {
+  canProposePayment,
+  DomainRuleViolation,
+  validateFullPaymentBatch,
+  validateSupplier,
+} from './payment-policy.js';
 
 test('acepta un pago total de varias facturas del mismo tenant', () => {
   const total = validateFullPaymentBatch(
@@ -42,3 +47,19 @@ test('requiere razón social y celular para proveedor', () => {
   );
 });
 
+test('un operador de pagos puede proponer pero no confirmar pagos', () => {
+  assert.equal(canProposePayment('OPERATOR_PAYMENTS'), true);
+  assert.throws(
+    () =>
+      validateFullPaymentBatch(
+        {
+          tenantId: 'tenant-a',
+          invoiceIds: ['invoice-1'],
+          requestedByRole: 'OPERATOR_PAYMENTS',
+          idempotencyKey: 'payment-001',
+        },
+        [{ id: 'invoice-1', tenantId: 'tenant-a', amountInCents: 100n, status: 'IN_GRID' }],
+      ),
+    DomainRuleViolation,
+  );
+});

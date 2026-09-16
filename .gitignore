@@ -5,4 +5,4 @@ cdk.out/
 .env.*
 !.env.example
 coverage/
-
+src/generated/

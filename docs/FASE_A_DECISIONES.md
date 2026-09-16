@@ -6,6 +6,12 @@
 - Hay tres planes: Básico, Profesional y Ultra.
 - Cada tenant recibe una prueba gratuita de siete días desde su alta.
 - La renovación es mensual y manual mediante Mercado Pago Checkout Pro.
+- Precios iniciales mensuales: Básico ARS 28.000, Profesional ARS 82.000 y Ultra ARS 144.000.
+- Desde el día cinco se envían avisos de finalización de prueba.
+- Al terminar la prueba, el tenant queda bloqueado para operatoria durante siete días, pero puede acceder a facturación y renovación.
+- Transcurridos esos siete días de bloqueo, se revoca todo acceso y una nueva utilización requiere registro nuevo. No se borra información automáticamente hasta definir la política legal de retención.
+- `OPERATOR_PAYMENTS` puede proponer o cargar un pago; sólo `ADMIN` lo confirma. Un pago iniciado y confirmado por `ADMIN` no requiere otra aprobación.
+- La región objetivo inicial es `us-east-1` (Norte de Virginia).
 - Los precios, límites de facturas, usuarios, almacenamiento y capacidades no se codifican: se administran como datos de plan con vigencia.
 - Básico opera por WhatsApp; Profesional y Ultra incorporan aplicación web autenticada con Cognito.
 - YCloud es el proveedor de WhatsApp de producción.
@@ -20,13 +26,11 @@
   - WhatsApp es canal de ingesta móvil y de notificaciones, no la interfaz principal de Profesional/Ultra.
   - Ultra agrega Chat IA y controles/analítica avanzados.
 
-## Pendientes de la grilla comercial
+## Pendientes de definición
 
-- Precio y moneda por plan.
-- El PDF no contiene precios ni moneda.
 - Límite de almacenamiento y de consultas IA de Ultra.
-- Límite de almacenamiento y de consultas IA de Ultra.
-- Período de gracia y comportamiento de un tenant vencido.
+- Frecuencia, texto y canales exactos de los avisos desde el día cinco de prueba.
+- Política definitiva de conservación, exportación o eliminación de datos luego de `ACCESS_EXPIRED`, sujeta a asesoramiento legal.
 
 ## Decisión técnica derivada
 

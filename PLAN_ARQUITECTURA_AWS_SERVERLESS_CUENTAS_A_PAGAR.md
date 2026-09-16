@@ -66,7 +66,7 @@ Los límites de facturas mensuales, usuarios/celulares, almacenamiento y consult
 - La anulación de una factura o reversión de pago conserva historial; nunca borra la información financiera.
 - En Básico, sólo un número WhatsApp autorizado como administrador puede registrar un pago.
 - En Profesional, el `OPERADOR_CARGA` no registra ni modifica pagos. El administrador los registra.
-- En Profesional y Ultra, un futuro `OPERADOR_PAGOS` puede crear una propuesta; sólo un administrador la aprueba y registra. Ultra puede activar políticas avanzadas, como "quien propone no aprueba".
+- En Profesional y Ultra, `OPERADOR_PAGOS` puede crear una propuesta de pago; sólo un administrador la aprueba y registra. Un pago iniciado por el propio administrador no requiere una aprobación adicional. Ultra puede activar políticas avanzadas, como "quien propone no aprueba".
 
 ### Alertas de pago
 
@@ -147,7 +147,7 @@ Roles iniciales:
 
 - `ADMIN`: usuarios, configuración, proveedores, confirmación de facturas, pagos, alertas y suscripción.
 - `OPERADOR_CARGA`: carga archivos/datos y corrige sus borradores; no confirma facturas, no gestiona pagos ni usuarios.
-- `OPERADOR_PAGOS` (Profesional/Ultra, posterior): propone pagos sin aprobarlos.
+- `OPERADOR_PAGOS` (Profesional/Ultra): propone o carga pagos sin aprobarlos.
 
 Todas las consultas y mutaciones filtran por el tenant autorizado. El `tenantId` enviado por navegador nunca otorga acceso por sí mismo. PostgreSQL Row-Level Security se incorpora como segunda barrera una vez estabilizado el acceso desde Prisma.
 
@@ -302,7 +302,7 @@ Medidas:
 
 ### Fase A — Fundaciones y dominio
 
-1. Definir precios, límites, período de gracia, retención de datos y política de cancelación.
+1. Definir precios, límites, período de gracia, retención de datos y política de cancelación. Decisiones iniciales: ARS 28.000/82.000/144.000 por mes, prueba de siete días y bloqueo de operatoria por siete días antes de revocar el acceso.
 2. Modelar tenants, memberships, roles, proveedores, categorías, facturas, pagos por lote, borradores y auditoría.
 3. Implementar invariantes: no parcialidad, pagos atómicos, borrado lógico, aislamiento de tenant e idempotencia.
 4. Crear ambientes AWS con CDK, KMS, Secrets Manager, CloudWatch y presupuestos.
@@ -346,10 +346,10 @@ Medidas:
 
 Estas decisiones no deben bloquear el diseño base, pero sí deben cerrarse antes de producción:
 
-1. Cantidad, precio y moneda de facturas, usuarios, almacenamiento y consultas IA por plan.
-2. Si la renovación mensual será manual por Checkout Pro o automática mediante Suscripciones de Mercado Pago.
-3. Política de gracia, suspensión, reactivación y downgrade de plan.
-4. Alcance inicial de `OPERADOR_PAGOS` y si la doble aprobación será obligatoria en Ultra.
-5. Región AWS, requerimientos legales/fiscales y plazo de retención de comprobantes/auditoría.
+1. Límite de almacenamiento y de consultas IA por plan.
+2. Frecuencia y texto de los avisos desde el día cinco de prueba.
+3. Política definitiva de retención/eliminación de datos y reactivación, pendiente de asesoramiento legal.
+4. Si la doble aprobación será obligatoria en Ultra.
+5. Requerimientos legales/fiscales y plazo de retención de comprobantes/auditoría. Región inicial: `us-east-1`.
 6. Volumen objetivo de mensajes, documentos, tamaño máximo de archivo y RPO/RTO.
 7. Política para categorías: una categoría primaria por proveedor, y si una factura podrá excepcionalmente sobrescribirla.

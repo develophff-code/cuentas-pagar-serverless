@@ -23,6 +23,10 @@ export function canRecordPayment(role: MembershipRole): boolean {
   return role === 'ADMIN';
 }
 
+export function canProposePayment(role: MembershipRole): boolean {
+  return role === 'ADMIN' || role === 'OPERATOR_PAYMENTS';
+}
+
 export function validateFullPaymentBatch(
   request: PaymentBatchRequest,
   invoices: readonly InvoiceForPayment[],
@@ -30,6 +34,25 @@ export function validateFullPaymentBatch(
   if (!canRecordPayment(request.requestedByRole)) {
     throw new DomainRuleViolation('El rol no puede registrar pagos.');
   }
+
+  return validatePaymentBatch(request, invoices);
+}
+
+export function validatePaymentProposal(
+  request: PaymentBatchRequest,
+  invoices: readonly InvoiceForPayment[],
+): bigint {
+  if (!canProposePayment(request.requestedByRole)) {
+    throw new DomainRuleViolation('El rol no puede proponer pagos.');
+  }
+
+  return validatePaymentBatch(request, invoices);
+}
+
+function validatePaymentBatch(
+  request: PaymentBatchRequest,
+  invoices: readonly InvoiceForPayment[],
+): bigint {
 
   if (!request.idempotencyKey.trim()) {
     throw new DomainRuleViolation('Toda operación de pago requiere una clave de idempotencia.');
@@ -67,4 +90,3 @@ export function validateFullPaymentBatch(
 
   return total;
 }
-

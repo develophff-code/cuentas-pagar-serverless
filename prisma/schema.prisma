@@ -1,0 +1,538 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model application_users {
+  id                                                                          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cognito_sub                                                                 String?               @unique
+  email                                                                       String
+  full_name                                                                   String?
+  is_active                                                                   Boolean               @default(true)
+  created_at                                                                  DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at                                                                  DateTime              @default(now()) @db.Timestamptz(6)
+  audit_events                                                                audit_events[]
+  documents                                                                   documents[]
+  invoice_drafts_invoice_drafts_created_by_user_idToapplication_users         invoice_drafts[]      @relation("invoice_drafts_created_by_user_idToapplication_users")
+  invoice_drafts_invoice_drafts_reviewed_by_user_idToapplication_users        invoice_drafts[]      @relation("invoice_drafts_reviewed_by_user_idToapplication_users")
+  invoices_invoices_canceled_by_user_idToapplication_users                    invoices[]            @relation("invoices_canceled_by_user_idToapplication_users")
+  invoices_invoices_confirmed_by_user_idToapplication_users                   invoices[]            @relation("invoices_confirmed_by_user_idToapplication_users")
+  invoices_invoices_created_by_user_idToapplication_users                     invoices[]            @relation("invoices_created_by_user_idToapplication_users")
+  payment_batches_payment_batches_confirmed_by_user_idToapplication_users     payment_batches[]     @relation("payment_batches_confirmed_by_user_idToapplication_users")
+  payment_batches_payment_batches_proposed_by_user_idToapplication_users      payment_batches[]     @relation("payment_batches_proposed_by_user_idToapplication_users")
+  payment_batches_payment_batches_reversed_by_user_idToapplication_users      payment_batches[]     @relation("payment_batches_reversed_by_user_idToapplication_users")
+  subscription_orders                                                         subscription_orders[]
+  suppliers                                                                   suppliers[]
+  tenant_memberships_tenant_memberships_created_by_user_idToapplication_users tenant_memberships[]  @relation("tenant_memberships_created_by_user_idToapplication_users")
+  tenant_memberships_tenant_memberships_user_idToapplication_users            tenant_memberships[]  @relation("tenant_memberships_user_idToapplication_users")
+  whatsapp_identities                                                         whatsapp_identities[]
+}
+
+model audit_events {
+  id                         String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id                  String?              @db.Uuid
+  actor_user_id              String?              @db.Uuid
+  actor_whatsapp_identity_id String?              @db.Uuid
+  action                     String
+  entity_type                String
+  entity_id                  String?              @db.Uuid
+  source                     String
+  metadata                   Json                 @default("{}")
+  created_at                 DateTime             @default(now()) @db.Timestamptz(6)
+  application_users          application_users?   @relation(fields: [actor_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  whatsapp_identities        whatsapp_identities? @relation(fields: [actor_whatsapp_identity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                    tenants?             @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenant_id, created_at(sort: Desc)], map: "audit_events_tenant_created_idx")
+}
+
+model categories {
+  code       String      @id
+  name       String      @unique
+  sort_order Int         @unique @db.SmallInt
+  is_active  Boolean     @default(true)
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at DateTime    @default(now()) @db.Timestamptz(6)
+  suppliers  suppliers[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model documents {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id          String             @db.Uuid
+  source             document_source
+  status             document_status    @default(UPLOADING)
+  object_key         String?            @unique
+  original_file_name String?
+  mime_type          String?
+  size_bytes         BigInt?
+  sha256             String?            @db.Char(64)
+  source_message_id  String?
+  created_by_user_id String?            @db.Uuid
+  created_at         DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime           @default(now()) @db.Timestamptz(6)
+  application_users  application_users? @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants            tenants            @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoice_drafts     invoice_drafts?
+  invoices           invoices[]
+
+  @@index([tenant_id, sha256], map: "documents_tenant_hash_idx", where: raw("(sha256 IS NOT NULL)"))
+  @@index([tenant_id, status], map: "documents_tenant_status_idx")
+}
+
+model inbound_events {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider          String
+  external_event_id String
+  event_type        String
+  payload_sha256    String?   @db.Char(64)
+  received_at       DateTime  @default(now()) @db.Timestamptz(6)
+  processed_at      DateTime? @db.Timestamptz(6)
+  processing_status String    @default("PENDING")
+  payload           Json
+
+  @@unique([provider, external_event_id])
+  @@index([processing_status, received_at], map: "inbound_events_status_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model invoice_drafts {
+  id                                                                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id                                                               String             @db.Uuid
+  document_id                                                             String?            @unique @db.Uuid
+  status                                                                  invoice_status     @default(DRAFT)
+  extracted_data                                                          Json               @default("{}")
+  review_notes                                                            String?
+  created_by_user_id                                                      String?            @db.Uuid
+  reviewed_by_user_id                                                     String?            @db.Uuid
+  reviewed_at                                                             DateTime?          @db.Timestamptz(6)
+  created_at                                                              DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at                                                              DateTime           @default(now()) @db.Timestamptz(6)
+  application_users_invoice_drafts_created_by_user_idToapplication_users  application_users? @relation("invoice_drafts_created_by_user_idToapplication_users", fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  documents                                                               documents?         @relation(fields: [document_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  application_users_invoice_drafts_reviewed_by_user_idToapplication_users application_users? @relation("invoice_drafts_reviewed_by_user_idToapplication_users", fields: [reviewed_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                                                                 tenants            @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoices                                                                invoices?
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model invoices {
+  id                                                                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id                                                          String             @db.Uuid
+  supplier_id                                                        String             @db.Uuid
+  source_draft_id                                                    String?            @unique @db.Uuid
+  document_id                                                        String?            @db.Uuid
+  invoice_type                                                       String             @default("INFORMAL")
+  invoice_number                                                     String?
+  description                                                        String?
+  amount                                                             Decimal            @db.Decimal(14, 2)
+  issue_date                                                         DateTime?          @db.Date
+  due_date                                                           DateTime           @db.Date
+  scheduled_payment_date                                             DateTime?          @db.Date
+  status                                                             invoice_status     @default(PENDING_REVIEW)
+  raw_extraction_data                                                Json?
+  created_by_user_id                                                 String?            @db.Uuid
+  confirmed_by_user_id                                               String?            @db.Uuid
+  canceled_by_user_id                                                String?            @db.Uuid
+  canceled_at                                                        DateTime?          @db.Timestamptz(6)
+  cancellation_reason                                                String?
+  created_at                                                         DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at                                                         DateTime           @default(now()) @db.Timestamptz(6)
+  application_users_invoices_canceled_by_user_idToapplication_users  application_users? @relation("invoices_canceled_by_user_idToapplication_users", fields: [canceled_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  application_users_invoices_confirmed_by_user_idToapplication_users application_users? @relation("invoices_confirmed_by_user_idToapplication_users", fields: [confirmed_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  application_users_invoices_created_by_user_idToapplication_users   application_users? @relation("invoices_created_by_user_idToapplication_users", fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  documents                                                          documents?         @relation(fields: [document_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoice_drafts                                                     invoice_drafts?    @relation(fields: [source_draft_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  suppliers                                                          suppliers          @relation(fields: [supplier_id, tenant_id], references: [id, tenant_id], onDelete: NoAction, onUpdate: NoAction, map: "invoices_supplier_same_tenant_fkey")
+  tenants                                                            tenants            @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  payment_items                                                      payment_items[]
+
+  @@unique([tenant_id, supplier_id, invoice_type, invoice_number], map: "invoices_fiscal_reference_key", where: raw("((invoice_type = ANY (ARRAY['A'::text, 'C'::text])) AND (status <> 'CANCELED'::invoice_status))"))
+  @@unique([id, tenant_id], map: "invoices_id_tenant_key")
+  @@index([supplier_id], map: "invoices_supplier_idx")
+  @@index([tenant_id, scheduled_payment_date], map: "invoices_tenant_scheduled_payment_idx")
+  @@index([tenant_id, status, due_date], map: "invoices_tenant_status_due_idx")
+}
+
+model notification_intents {
+  id                      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id               String              @db.Uuid
+  recipient_membership_id String?             @db.Uuid
+  intent_type             String
+  idempotency_key         String
+  payload                 Json                @default("{}")
+  scheduled_for           DateTime?           @db.Timestamptz(6)
+  created_at              DateTime            @default(now()) @db.Timestamptz(6)
+  tenant_memberships      tenant_memberships? @relation(fields: [recipient_membership_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                 tenants             @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  outbound_messages       outbound_messages[]
+
+  @@unique([tenant_id, idempotency_key])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model outbound_messages {
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id              String                  @db.Uuid
+  notification_intent_id String?                 @db.Uuid
+  recipient_identity_id  String?                 @db.Uuid
+  logical_key            String
+  status                 outbound_message_status @default(PENDING)
+  provider               String                  @default("YCLOUD")
+  provider_message_id    String?
+  attempt_count          Int                     @default(0)
+  last_error             String?
+  sent_at                DateTime?               @db.Timestamptz(6)
+  delivered_at           DateTime?               @db.Timestamptz(6)
+  read_at                DateTime?               @db.Timestamptz(6)
+  created_at             DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime                @default(now()) @db.Timestamptz(6)
+  notification_intents   notification_intents?   @relation(fields: [notification_intent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  whatsapp_identities    whatsapp_identities?    @relation(fields: [recipient_identity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                tenants                 @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([provider, provider_message_id], map: "outbound_messages_provider_message_key", where: raw("(provider_message_id IS NOT NULL)"))
+  @@unique([tenant_id, logical_key])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_batches {
+  id                                                                        String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id                                                                 String               @db.Uuid
+  status                                                                    payment_batch_status @default(DRAFT)
+  idempotency_key                                                           String
+  proposed_by_user_id                                                       String               @db.Uuid
+  proposed_at                                                               DateTime             @default(now()) @db.Timestamptz(6)
+  confirmed_by_user_id                                                      String?              @db.Uuid
+  confirmed_at                                                              DateTime?            @db.Timestamptz(6)
+  reversed_by_user_id                                                       String?              @db.Uuid
+  reversed_at                                                               DateTime?            @db.Timestamptz(6)
+  reversal_reason                                                           String?
+  created_at                                                                DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at                                                                DateTime             @default(now()) @db.Timestamptz(6)
+  application_users_payment_batches_confirmed_by_user_idToapplication_users application_users?   @relation("payment_batches_confirmed_by_user_idToapplication_users", fields: [confirmed_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  application_users_payment_batches_proposed_by_user_idToapplication_users  application_users    @relation("payment_batches_proposed_by_user_idToapplication_users", fields: [proposed_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  application_users_payment_batches_reversed_by_user_idToapplication_users  application_users?   @relation("payment_batches_reversed_by_user_idToapplication_users", fields: [reversed_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                                                                   tenants              @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  payment_items                                                             payment_items[]
+
+  @@unique([id, tenant_id], map: "payment_batches_id_tenant_key")
+  @@unique([tenant_id, idempotency_key])
+  @@index([tenant_id, status], map: "payment_batches_tenant_status_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_grid_configs {
+  tenant_id         String   @id @db.Uuid
+  timezone          String   @default("America/Argentina/Buenos_Aires")
+  notification_time DateTime @default(dbgenerated("'08:00:00'::time without time zone")) @db.Time(6)
+  look_ahead_hours  Int      @default(24) @db.SmallInt
+  enabled           Boolean  @default(true)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime @default(now()) @db.Timestamptz(6)
+  tenants           tenants  @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model payment_grid_recipients {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id          String             @db.Uuid
+  membership_id      String             @db.Uuid
+  enabled            Boolean            @default(true)
+  created_at         DateTime           @default(now()) @db.Timestamptz(6)
+  tenant_memberships tenant_memberships @relation(fields: [membership_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants            tenants            @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([tenant_id, membership_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_items {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id        String          @db.Uuid
+  payment_batch_id String          @db.Uuid
+  invoice_id       String          @db.Uuid
+  amount           Decimal         @db.Decimal(14, 2)
+  created_at       DateTime        @default(now()) @db.Timestamptz(6)
+  invoices         invoices        @relation(fields: [invoice_id, tenant_id], references: [id, tenant_id], onDelete: NoAction, onUpdate: NoAction)
+  payment_batches  payment_batches @relation(fields: [payment_batch_id, tenant_id], references: [id, tenant_id], onDelete: NoAction, onUpdate: NoAction)
+  tenants          tenants         @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([payment_batch_id, invoice_id])
+  @@index([invoice_id], map: "payment_items_invoice_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model plan_capability_versions {
+  id                             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_code                      plan_code @unique(map: "plan_capability_versions_one_active_per_plan", where: raw("(valid_to IS NULL)"))
+  max_invoices_per_month         Int
+  max_suppliers                  Int
+  max_active_users               Int
+  max_storage_bytes              BigInt    @default(0)
+  monthly_ai_queries             Int       @default(0)
+  dashboard_enabled              Boolean   @default(false)
+  supplier_notifications_enabled Boolean   @default(false)
+  web_operations_enabled         Boolean   @default(false)
+  web_administration_enabled     Boolean   @default(false)
+  ai_chat_enabled                Boolean   @default(false)
+  valid_from                     DateTime  @db.Timestamptz(6)
+  valid_to                       DateTime? @db.Timestamptz(6)
+  created_at                     DateTime  @default(now()) @db.Timestamptz(6)
+  plans                          plans     @relation(fields: [plan_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model plan_price_versions {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_code           plan_code             @unique(map: "plan_price_versions_one_active_per_plan", where: raw("(valid_to IS NULL)"))
+  amount              Decimal               @db.Decimal(14, 2)
+  currency            String                @default("ARS") @db.Char(3)
+  valid_from          DateTime              @db.Timestamptz(6)
+  valid_to            DateTime?             @db.Timestamptz(6)
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  plans               plans                 @relation(fields: [plan_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
+  subscription_orders subscription_orders[]
+}
+
+model plans {
+  code                     plan_code                 @id
+  name                     String
+  created_at               DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime                  @default(now()) @db.Timestamptz(6)
+  plan_capability_versions plan_capability_versions?
+  plan_price_versions      plan_price_versions?
+  subscription_orders      subscription_orders[]
+  subscriptions            subscriptions[]
+  tenants                  tenants[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model subscription_orders {
+  id                     String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id              String                    @db.Uuid
+  plan_code              plan_code
+  price_version_id       String                    @db.Uuid
+  amount                 Decimal                   @db.Decimal(14, 2)
+  currency               String                    @default("ARS") @db.Char(3)
+  status                 subscription_order_status @default(PENDING)
+  checkout_provider      String                    @default("MERCADO_PAGO")
+  external_reference     String                    @unique
+  checkout_preference_id String?                   @unique
+  checkout_url           String?
+  expires_at             DateTime?                 @db.Timestamptz(6)
+  paid_at                DateTime?                 @db.Timestamptz(6)
+  created_by_user_id     String?                   @db.Uuid
+  created_at             DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime                  @default(now()) @db.Timestamptz(6)
+  application_users      application_users?        @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plans                  plans                     @relation(fields: [plan_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
+  plan_price_versions    plan_price_versions       @relation(fields: [price_version_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                tenants                   @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subscriptions          subscriptions[]
+
+  @@index([tenant_id, status], map: "subscription_orders_tenant_status_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model subscriptions {
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id           String               @db.Uuid
+  plan_code           plan_code
+  status              subscription_status
+  starts_at           DateTime             @db.Timestamptz(6)
+  ends_at             DateTime             @db.Timestamptz(6)
+  source_order_id     String?              @db.Uuid
+  created_at          DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime             @default(now()) @db.Timestamptz(6)
+  plans               plans                @relation(fields: [plan_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
+  subscription_orders subscription_orders? @relation(fields: [source_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants             tenants              @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenant_id, starts_at(sort: Desc)], map: "subscriptions_tenant_dates_idx")
+}
+
+model supplier_bank_accounts {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplier_id             String    @unique(map: "supplier_bank_accounts_one_primary_per_supplier", where: raw("is_primary")) @db.Uuid
+  encrypted_account_value Bytes
+  account_value_last4     String?   @db.VarChar(4)
+  account_type            String    @default("CBU_CVU_ALIAS")
+  is_primary              Boolean   @default(true)
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime  @default(now()) @db.Timestamptz(6)
+  suppliers               suppliers @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model suppliers {
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id              String                  @db.Uuid
+  business_name          String
+  mobile_phone           String                  @db.VarChar(32)
+  cuit                   String?                 @db.VarChar(13)
+  address                String?
+  category_code          String?
+  is_active              Boolean                 @default(true)
+  created_by_user_id     String?                 @db.Uuid
+  created_at             DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime                @default(now()) @db.Timestamptz(6)
+  invoices               invoices[]
+  supplier_bank_accounts supplier_bank_accounts?
+  categories             categories?             @relation(fields: [category_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
+  application_users      application_users?      @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                tenants                 @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([id, tenant_id], map: "suppliers_id_tenant_key")
+  @@index([tenant_id, category_code], map: "suppliers_tenant_category_idx")
+  @@index([tenant_id, cuit], map: "suppliers_tenant_cuit_idx", where: raw("(cuit IS NOT NULL)"))
+}
+
+model tenant_memberships {
+  id                                                                         String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id                                                                  String                    @db.Uuid
+  user_id                                                                    String                    @db.Uuid
+  role                                                                       membership_role
+  is_active                                                                  Boolean                   @default(true)
+  created_by_user_id                                                         String?                   @db.Uuid
+  created_at                                                                 DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                                                                 DateTime                  @default(now()) @db.Timestamptz(6)
+  notification_intents                                                       notification_intents[]
+  payment_grid_recipients                                                    payment_grid_recipients[]
+  application_users_tenant_memberships_created_by_user_idToapplication_users application_users?        @relation("tenant_memberships_created_by_user_idToapplication_users", fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                                                                    tenants                   @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  application_users_tenant_memberships_user_idToapplication_users            application_users         @relation("tenant_memberships_user_idToapplication_users", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([tenant_id, user_id])
+  @@index([user_id, is_active], map: "tenant_memberships_user_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model tenants {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_name           String
+  cuit                    String?                   @db.VarChar(13)
+  access_status           tenant_access_status      @default(TRIAL)
+  trial_started_at        DateTime                  @default(now()) @db.Timestamptz(6)
+  trial_ends_at           DateTime                  @db.Timestamptz(6)
+  blocked_until           DateTime?                 @db.Timestamptz(6)
+  access_expires_at       DateTime?                 @db.Timestamptz(6)
+  current_plan_code       plan_code?
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  audit_events            audit_events[]
+  documents               documents[]
+  invoice_drafts          invoice_drafts[]
+  invoices                invoices[]
+  notification_intents    notification_intents[]
+  outbound_messages       outbound_messages[]
+  payment_batches         payment_batches[]
+  payment_grid_configs    payment_grid_configs?
+  payment_grid_recipients payment_grid_recipients[]
+  payment_items           payment_items[]
+  subscription_orders     subscription_orders[]
+  subscriptions           subscriptions[]
+  suppliers               suppliers[]
+  tenant_memberships      tenant_memberships[]
+  plans                   plans?                    @relation(fields: [current_plan_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
+  whatsapp_identities     whatsapp_identities[]
+
+  @@index([access_status])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsapp_identities {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id         String              @db.Uuid
+  user_id           String?             @db.Uuid
+  provider          String              @default("YCLOUD")
+  bsuid             String?
+  phone_number      String?             @db.VarChar(32)
+  verified_at       DateTime?           @db.Timestamptz(6)
+  is_active         Boolean             @default(true)
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
+  audit_events      audit_events[]
+  outbound_messages outbound_messages[]
+  tenants           tenants             @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  application_users application_users?  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([provider, bsuid], where: raw("(bsuid IS NOT NULL)"))
+  @@unique([provider, phone_number], map: "whatsapp_identities_provider_phone_key", where: raw("(phone_number IS NOT NULL)"))
+}
+
+enum document_source {
+  WHATSAPP
+  WEB
+}
+
+enum document_status {
+  UPLOADING
+  UPLOADED
+  PROCESSING
+  READY_FOR_REVIEW
+  REJECTED
+  FAILED
+}
+
+enum invoice_status {
+  DRAFT
+  PENDING_REVIEW
+  IN_GRID
+  PAYMENT_PROPOSED
+  PAID
+  CANCELED
+}
+
+enum membership_role {
+  ADMIN
+  OPERATOR_UPLOAD
+  OPERATOR_PAYMENTS
+}
+
+enum outbound_message_status {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum payment_batch_status {
+  DRAFT
+  PENDING_APPROVAL
+  RECORDED
+  REVERSED
+}
+
+enum plan_code {
+  BASIC
+  PROFESSIONAL
+  ULTRA
+}
+
+enum subscription_order_status {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+enum subscription_status {
+  TRIAL
+  ACTIVE
+  BLOCKED_PAYMENT
+  EXPIRED
+}
+
+enum tenant_access_status {
+  TRIAL
+  ACTIVE
+  BLOCKED_PAYMENT
+  ACCESS_EXPIRED
+}

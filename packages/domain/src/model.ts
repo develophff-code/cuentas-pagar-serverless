@@ -4,6 +4,14 @@ export type PlanCode = (typeof PLAN_CODES)[number];
 export const MEMBERSHIP_ROLES = ['ADMIN', 'OPERATOR_UPLOAD', 'OPERATOR_PAYMENTS'] as const;
 export type MembershipRole = (typeof MEMBERSHIP_ROLES)[number];
 
+export const TENANT_ACCESS_STATUSES = [
+  'TRIAL',
+  'ACTIVE',
+  'BLOCKED_PAYMENT',
+  'ACCESS_EXPIRED',
+] as const;
+export type TenantAccessStatus = (typeof TENANT_ACCESS_STATUSES)[number];
+
 export const INVOICE_STATUSES = [
   'DRAFT',
   'PENDING_REVIEW',
@@ -56,4 +64,13 @@ export interface PlanPriceVersion {
   currency: string;
   validFrom: Date;
   validTo?: Date;
+}
+
+export interface TenantAccessWindow {
+  status: TenantAccessStatus;
+  trialEndsAt: Date;
+  blockedUntil?: Date;
+  shouldSendTrialWarning: boolean;
+  allowsOperationalAccess: boolean;
+  allowsBillingAccess: boolean;
 }

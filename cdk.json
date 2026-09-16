@@ -1,0 +1,7 @@
+{
+  "app": "node dist/infra/bin/app.js",
+  "context": {
+    "stage": "dev"
+  }
+}
+

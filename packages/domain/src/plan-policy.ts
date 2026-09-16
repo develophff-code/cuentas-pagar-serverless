@@ -1,14 +1,6 @@
 import type { EditablePlanCapabilities, PlanCode, PlanPriceVersion } from './model.js';
 import { DomainRuleViolation } from './payment-policy.js';
 
-export const TRIAL_LENGTH_DAYS = 7;
-
-export function calculateTrialEndsAt(createdAt: Date): Date {
-  const result = new Date(createdAt);
-  result.setUTCDate(result.getUTCDate() + TRIAL_LENGTH_DAYS);
-  return result;
-}
-
 export function validatePlanCapabilities(capabilities: EditablePlanCapabilities): void {
   if (!Number.isInteger(capabilities.maxInvoicesPerMonth) || capabilities.maxInvoicesPerMonth < 1) {
     throw new DomainRuleViolation('El límite mensual de facturas debe ser un entero positivo.');

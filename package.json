@@ -8,15 +8,24 @@
   },
   "scripts": {
     "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
-    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js",
-    "build": "node ./node_modules/typescript/bin/tsc"
+    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js dist/infra/lib/environment.test.js",
+    "build": "node ./node_modules/typescript/bin/tsc",
+    "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
+    "cdk:synth": "npm run build && node ./node_modules/aws-cdk/bin/cdk synth"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "aws-cdk": "^2.0.0",
     "aws-cdk-lib": "^2.0.0",
     "constructs": "^10.0.0",
+    "prisma": "^7.10.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.23.0"
   }
 }
