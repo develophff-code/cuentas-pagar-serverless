@@ -7,6 +7,7 @@ import {
   validateSupplier,
 } from './payment-policy.js';
 import { canConfirmInvoices, canCreateInvoices, validateInvoice } from './invoice-policy.js';
+import { canManageMemberships, validateOperatorRole } from './membership-policy.js';
 
 test('acepta un pago total de varias facturas del mismo tenant', () => {
   const total = validateFullPaymentBatch(
@@ -83,4 +84,11 @@ test('distingue comprobantes fiscales e informales', () => {
     tenantId: 'tenant-a', supplierId: 'supplier-a', invoiceType: 'INFORMAL',
     description: 'Servicio de flete', amountInCents: 100n, dueDate: new Date('2026-10-01'),
   }));
+});
+
+test('sólo admin administra miembros y no delega el rol admin', () => {
+  assert.equal(canManageMemberships('ADMIN'), true);
+  assert.equal(canManageMemberships('OPERATOR_PAYMENTS'), false);
+  assert.throws(() => validateOperatorRole('ADMIN'), DomainRuleViolation);
+  assert.doesNotThrow(() => validateOperatorRole('OPERATOR_UPLOAD'));
 });
