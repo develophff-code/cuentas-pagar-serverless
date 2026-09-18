@@ -54,5 +54,8 @@ runtime de Secrets Manager y Lambda sólo tiene permiso de lectura sobre ese
 secreto y de escritura sobre `InboundEvents`. DynamoDB guarda el evento con la
 clave `YCLOUD#{event.id}` y una escritura condicional, de modo que los
 reintentos de YCloud devuelven `200` sin duplicarlo. La retención automática es
-de 30 días; el procesamiento asíncrono del evento queda para el worker de la
-siguiente iteración.
+de 30 días. DynamoDB Streams relaya cada inserción a `ConversationQueue.fifo`.
+El grupo FIFO se deriva mediante SHA-256 de la identidad WhatsApp, conservando
+el orden de una conversación sin exponer teléfono o BSUID en el identificador.
+La cola mantiene una DLQ y el worker consume de a un mensaje; aún no descarga
+archivos ni envía respuestas, que pertenecen al hito de S3/OCR y mensajería.
