@@ -8,7 +8,7 @@
   },
   "scripts": {
     "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
-    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js dist/infra/lib/environment.test.js",
+    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js dist/infra/lib/environment.test.js dist/infra/lib/foundation-stack.test.js",
     "build": "node ./node_modules/typescript/bin/tsc",
     "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
     "cdk:synth": "npm run build && node ./node_modules/aws-cdk/bin/cdk synth"
