@@ -6,6 +6,7 @@ import {
   validateInvoice,
 } from '../../packages/domain/src/invoice-policy.js';
 import { DomainRuleViolation } from '../../packages/domain/src/payment-policy.js';
+import { assertMonthlyInvoiceCapacity } from './plan-usage-guard.js';
 
 export interface InvoiceActor {
   tenantId: string;
@@ -42,34 +43,37 @@ export class InvoiceService {
       throw new DomainRuleViolation('Sólo ADMIN puede confirmar una factura.');
     }
 
-    const supplier = await this.prisma.suppliers.findFirst({
-      where: { id: input.supplierId, tenant_id: actor.tenantId, is_active: true },
-      select: { id: true },
-    });
-    if (supplier === null) {
-      throw new DomainRuleViolation('El proveedor no existe, no está activo o no pertenece al tenant.');
-    }
-
     const status = options.confirmImmediately === true ? 'IN_GRID' : 'PENDING_REVIEW';
-    const invoice = await this.prisma.invoices.create({
-      data: {
-        tenant_id: actor.tenantId,
-        supplier_id: input.supplierId,
-        invoice_type: input.invoiceType,
-        ...(input.invoiceNumber?.trim() === undefined ? {} : { invoice_number: input.invoiceNumber.trim() }),
-        ...(input.description?.trim() === undefined ? {} : { description: input.description.trim() }),
-        amount: centsToDecimal(input.amountInCents),
-        ...(input.issueDate === undefined ? {} : { issue_date: input.issueDate }),
-        due_date: input.dueDate,
-        ...(input.scheduledPaymentDate === undefined
-          ? {}
-          : { scheduled_payment_date: input.scheduledPaymentDate }),
-        status,
-        created_by_user_id: actor.userId,
-        ...(status === 'IN_GRID' ? { confirmed_by_user_id: actor.userId } : {}),
-      },
-    });
+    return this.prisma.$transaction(async (transaction) => {
+      await assertMonthlyInvoiceCapacity(transaction, actor.tenantId);
+      const supplier = await transaction.suppliers.findFirst({
+        where: { id: input.supplierId, tenant_id: actor.tenantId, is_active: true },
+        select: { id: true },
+      });
+      if (supplier === null) {
+        throw new DomainRuleViolation('El proveedor no existe, no está activo o no pertenece al tenant.');
+      }
 
-    return { id: invoice.id, status };
+      const invoice = await transaction.invoices.create({
+        data: {
+          tenant_id: actor.tenantId,
+          supplier_id: input.supplierId,
+          invoice_type: input.invoiceType,
+          ...(input.invoiceNumber?.trim() === undefined ? {} : { invoice_number: input.invoiceNumber.trim() }),
+          ...(input.description?.trim() === undefined ? {} : { description: input.description.trim() }),
+          amount: centsToDecimal(input.amountInCents),
+          ...(input.issueDate === undefined ? {} : { issue_date: input.issueDate }),
+          due_date: input.dueDate,
+          ...(input.scheduledPaymentDate === undefined
+            ? {}
+            : { scheduled_payment_date: input.scheduledPaymentDate }),
+          status,
+          created_by_user_id: actor.userId,
+          ...(status === 'IN_GRID' ? { confirmed_by_user_id: actor.userId } : {}),
+        },
+      });
+
+      return { id: invoice.id, status };
+    }, { isolationLevel: 'Serializable' });
   }
 }

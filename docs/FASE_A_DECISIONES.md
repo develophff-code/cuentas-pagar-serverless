@@ -15,8 +15,10 @@
 - Los precios, límites de facturas, usuarios, almacenamiento y capacidades no se codifican: se administran como datos de plan con vigencia.
 - Básico opera por WhatsApp; Profesional y Ultra incorporan aplicación web autenticada con Cognito.
 - YCloud es el proveedor de WhatsApp de producción.
-- `apagar.averiq.cloud` es el endpoint actual de webhook de YCloud y queda reservado durante la transición; no se reutiliza para la nueva aplicación.
-- La aplicación nueva tendrá un subdominio propio bajo `averiq.cloud`, por definir. Hostinger administra actualmente su DNS; cuando se elija el nombre se crearán los registros necesarios para CloudFront/API Gateway.
+- `apagar.averiq.cloud` es el endpoint actual de webhook de YCloud y queda reservado hasta completar su migración.
+- La URL destino del webhook de YCloud será `https://apagar.averiqsj.com`; su cambio se hará sólo después de verificar el nuevo endpoint y conservará el anterior como rollback temporal.
+- La aplicación de Cuentas a Pagar se publicará en `https://apagar.averiqsj.app`. El dominio `averiqsj.app` se reserva para las SaaS del portfolio y `averiqsj.com` para la presencia institucional y servicios complementarios.
+- Hostinger administra actualmente el DNS. Para CloudFront/API Gateway se configurarán CNAMEs, no direcciones IP fijas mediante registros A.
 - No se admiten pagos parciales: una factura se paga completa o permanece impaga.
 - Límites cuantitativos iniciales tomados de `saas_planes.pdf`:
   - Básico: 100 facturas, 25 proveedores y 1 celular.
@@ -33,7 +35,6 @@
 - Límite de almacenamiento y de consultas IA de Ultra.
 - Frecuencia, texto y canales exactos de los avisos desde el día cinco de prueba.
 - Política definitiva de conservación, exportación o eliminación de datos luego de `ACCESS_EXPIRED`, sujeta a asesoramiento legal.
-- Nombre definitivo del subdominio público de esta SaaS, que debe diferenciarla de futuras aplicaciones bajo `averiq.cloud`.
 
 ## Decisión técnica derivada
 

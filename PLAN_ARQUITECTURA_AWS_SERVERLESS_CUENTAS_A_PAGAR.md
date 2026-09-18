@@ -79,9 +79,9 @@ Los límites de facturas mensuales, usuarios/celulares, almacenamiento y consult
 
 ### 4.1 Dominios y transición de YCloud
 
-- `apagar.averiq.cloud` es el webhook existente de YCloud. Se mantiene como endpoint legado durante la transición y no se reasigna a la nueva aplicación sin una migración explícita y una prueba de recepción de eventos.
-- La nueva aplicación se publicará con un subdominio independiente bajo `averiq.cloud`, cuyo nombre debe reservarse específicamente para esta SaaS. En producción, CloudFront atenderá la web y API Gateway tendrá un host API separado o una ruta `/api` detrás de CloudFront, decisión a cerrar al implementar el frontend.
-- Hostinger administra el DNS actual. Para CloudFront no se configura una IP fija mediante registro A: se crea un CNAME del subdominio hacia el nombre de distribución que entrega AWS. ACM en `us-east-1` agrega CNAMEs de validación del certificado. No se mueve ni reemplaza el sitio institucional.
+- `apagar.averiq.cloud` es el webhook existente de YCloud. Se mantiene como endpoint legado hasta que `https://apagar.averiqsj.com` esté operativo, autenticado y probado con eventos reales. El cambio de URL se hará en YCloud con una ventana de rollback; no se reasigna ni elimina el endpoint anterior antes de validarlo.
+- La nueva aplicación se publicará en `https://apagar.averiqsj.app`. En producción, CloudFront atenderá la web y la ruta `/api` se distribuirá a API Gateway detrás de CloudFront, evitando exponer un nombre adicional de API al usuario final.
+- Hostinger administra el DNS actual. Para CloudFront no se configura una IP fija mediante registro A: se crea un CNAME del subdominio hacia el nombre de distribución que entrega AWS. ACM en `us-east-1` agrega CNAMEs de validación del certificado. El TLD `.app` está en la lista HSTS preload: HTTPS debe estar correctamente habilitado antes de publicar cualquier host bajo `averiqsj.app`. No se mueve ni reemplaza el sitio institucional.
 
 ```mermaid
 flowchart LR

@@ -8,6 +8,7 @@ import {
 } from './payment-policy.js';
 import { canConfirmInvoices, canCreateInvoices, validateInvoice } from './invoice-policy.js';
 import { canManageMemberships, validateOperatorRole } from './membership-policy.js';
+import { allowsBillingAccess, allowsOperationalAccess, assertAuthorizedRole } from './authorization-policy.js';
 
 test('acepta un pago total de varias facturas del mismo tenant', () => {
   const total = validateFullPaymentBatch(
@@ -91,4 +92,11 @@ test('sólo admin administra miembros y no delega el rol admin', () => {
   assert.equal(canManageMemberships('OPERATOR_PAYMENTS'), false);
   assert.throws(() => validateOperatorRole('ADMIN'), DomainRuleViolation);
   assert.doesNotThrow(() => validateOperatorRole('OPERATOR_UPLOAD'));
+});
+
+test('el bloqueo conserva facturación pero corta operatoria', () => {
+  assert.equal(allowsOperationalAccess('BLOCKED_PAYMENT'), false);
+  assert.equal(allowsBillingAccess('BLOCKED_PAYMENT'), true);
+  assert.equal(allowsBillingAccess('ACCESS_EXPIRED'), false);
+  assert.throws(() => assertAuthorizedRole('OPERATOR_UPLOAD', ['ADMIN']), DomainRuleViolation);
 });
