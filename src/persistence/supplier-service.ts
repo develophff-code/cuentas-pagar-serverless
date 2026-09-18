@@ -111,6 +111,16 @@ export class SupplierService {
       }
 
       const supplier = await transaction.suppliers.create({ data });
+      await transaction.audit_events.create({
+        data: {
+          tenant_id: actor.tenantId,
+          actor_user_id: actor.userId,
+          action: 'SUPPLIER_CREATED',
+          entity_type: 'SUPPLIER',
+          entity_id: supplier.id,
+          source: 'WEB',
+        },
+      });
       return { id: supplier.id, idempotent: false };
     }, { isolationLevel: 'Serializable' });
   }

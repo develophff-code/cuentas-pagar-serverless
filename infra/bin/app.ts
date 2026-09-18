@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
 import { FoundationStack } from '../lib/foundation-stack.js';
+import { ApplicationStack } from '../lib/application-stack.js';
 import { parseDeploymentStage, TARGET_REGION } from '../lib/environment.js';
 
 const app = new cdk.App();
@@ -12,7 +13,14 @@ const environment: cdk.Environment = account === undefined
   ? { region: TARGET_REGION }
   : { account, region: TARGET_REGION };
 
-new FoundationStack(app, `CuentasPagarFoundation-${stage}`, {
+const foundation = new FoundationStack(app, `CuentasPagarFoundation-${stage}`, {
   stage,
   env: environment,
+});
+
+new ApplicationStack(app, `CuentasPagarApplication-${stage}`, {
+  stage,
+  env: environment,
+  runtimeConfig: foundation.runtimeConfig,
+  runtimeConfigEncryptionKeyArn: foundation.encryptionKeyArn,
 });

@@ -6,6 +6,7 @@ import {
   validateFullPaymentBatch,
   validatePaymentProposal,
 } from '../../packages/domain/src/payment-policy.js';
+import { assertSameCommand, fingerprintCommand, normalizeIdempotencyKey } from './idempotency.js';
 
 export interface PaymentBatchResult {
   batchId: string;
@@ -36,18 +37,29 @@ export class PaymentBatchService {
       throw new DomainRuleViolation('El rol no puede proponer ni registrar pagos.');
     }
 
+    const idempotencyKey = normalizeIdempotencyKey(request.idempotencyKey);
+    if (idempotencyKey === undefined) {
+      throw new DomainRuleViolation('Toda operación de pago requiere una clave de idempotencia.');
+    }
+    const idempotencyFingerprint = fingerprintCommand({
+      tenantId: request.tenantId,
+      invoiceIds: [...request.invoiceIds].sort(),
+      requestedByRole: request.requestedByRole,
+    });
+
     return this.prisma.$transaction(async (transaction) => {
       const existing = await transaction.payment_batches.findUnique({
         where: {
           tenant_id_idempotency_key: {
             tenant_id: request.tenantId,
-            idempotency_key: request.idempotencyKey,
+            idempotency_key: idempotencyKey,
           },
         },
         include: { payment_items: true },
       });
 
       if (existing !== null) {
+        assertSameCommand(existing.idempotency_fingerprint, idempotencyFingerprint);
         return {
           batchId: existing.id,
           status: existing.status as PaymentBatchResult['status'],
@@ -74,7 +86,8 @@ export class PaymentBatchService {
         data: {
           tenant_id: request.tenantId,
           status,
-          idempotency_key: request.idempotencyKey,
+          idempotency_key: idempotencyKey,
+          idempotency_fingerprint: idempotencyFingerprint,
           proposed_by_user_id: actorUserId,
           ...(isRecorded
             ? { confirmed_by_user_id: actorUserId, confirmed_at: new Date() }
@@ -92,6 +105,18 @@ export class PaymentBatchService {
       await transaction.invoices.updateMany({
         where: { tenant_id: request.tenantId, id: { in: [...request.invoiceIds] } },
         data: { status: isRecorded ? 'PAID' : 'PAYMENT_PROPOSED' },
+      });
+
+      await transaction.audit_events.create({
+        data: {
+          tenant_id: request.tenantId,
+          actor_user_id: actorUserId,
+          action: isRecorded ? 'PAYMENT_RECORDED' : 'PAYMENT_PROPOSED',
+          entity_type: 'PAYMENT_BATCH',
+          entity_id: batch.id,
+          source: 'WEB',
+          metadata: { invoiceCount: request.invoiceIds.length },
+        },
       });
 
       return { batchId: batch.id, status, totalInCents, idempotent: false };

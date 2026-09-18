@@ -109,6 +109,17 @@ export class InvoiceService {
         },
       });
 
+      await transaction.audit_events.create({
+        data: {
+          tenant_id: actor.tenantId,
+          actor_user_id: actor.userId,
+          action: status === 'IN_GRID' ? 'INVOICE_CREATED_AND_CONFIRMED' : 'INVOICE_CREATED',
+          entity_type: 'INVOICE',
+          entity_id: invoice.id,
+          source: 'WEB',
+        },
+      });
+
       return { id: invoice.id, status, idempotent: false };
     }, { isolationLevel: 'Serializable' });
   }

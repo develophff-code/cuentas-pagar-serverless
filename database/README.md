@@ -8,12 +8,18 @@ La migración `migrations/001_initial_schema.sql` crea el esquema inicial de Pos
 - las diez categorías de proveedores;
 - las tablas de identidad, tenants, suscripciones, proveedores, documentos, facturas, pagos, alertas, webhooks y auditoría.
 
+Las migraciones posteriores se aplican en orden: `002` agrega las claves y
+huellas de idempotencia de proveedores y facturas; `003` agrega la huella para
+los lotes de pago. Nunca se salta ni se reaplica una migración ya registrada.
+
 ## Aplicación local
 
 La migración se aplica una sola vez sobre una base nueva. No contiene contraseñas.
 
 ```powershell
 & 'C:\Program Files\PostgreSQL\18\bin\psql.exe' -h localhost -p 5432 -U postgres -d cuentas_pagar_serverless -v ON_ERROR_STOP=1 -f database\migrations\001_initial_schema.sql
+& 'C:\Program Files\PostgreSQL\18\bin\psql.exe' -h localhost -p 5432 -U postgres -d cuentas_pagar_serverless -v ON_ERROR_STOP=1 -f database\migrations\002_http_command_idempotency.sql
+& 'C:\Program Files\PostgreSQL\18\bin\psql.exe' -h localhost -p 5432 -U postgres -d cuentas_pagar_serverless -v ON_ERROR_STOP=1 -f database\migrations\003_payment_batch_idempotency_fingerprint.sql
 ```
 
 PostgreSQL solicitará la contraseña de forma interactiva. Para una instalación distinta, reemplazar la ruta a `psql.exe` por la correspondiente.

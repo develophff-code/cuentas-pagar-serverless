@@ -14,6 +14,9 @@ export interface FoundationStackProps extends cdk.StackProps {
  * VPC, Aurora, S3, SQS y Lambda a esta stack por ambiente.
  */
 export class FoundationStack extends cdk.Stack {
+  public readonly runtimeConfig: secretsmanager.Secret;
+  public readonly encryptionKeyArn: string;
+
   constructor(scope: Construct, id: string, props: FoundationStackProps) {
     super(scope, id, props);
 
@@ -37,8 +40,9 @@ export class FoundationStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       description: `Cifrado de aplicación Cuentas a Pagar (${props.stage}).`,
     });
+    this.encryptionKeyArn = encryptionKey.keyArn;
 
-    const runtimeConfig = new secretsmanager.Secret(this, 'RuntimeConfiguration', {
+    this.runtimeConfig = new secretsmanager.Secret(this, 'RuntimeConfiguration', {
       secretName: `cuentas-pagar/${props.stage}/runtime-config`,
       encryptionKey,
       description: 'Contenedor de secretos de runtime. Los valores reales se agregan por ambiente.',
@@ -85,7 +89,7 @@ export class FoundationStack extends cdk.Stack {
       });
     }
 
-    new cdk.CfnOutput(this, 'ApplicationEncryptionKeyArn', { value: encryptionKey.keyArn });
-    new cdk.CfnOutput(this, 'RuntimeConfigurationSecretArn', { value: runtimeConfig.secretArn });
+    new cdk.CfnOutput(this, 'ApplicationEncryptionKeyArn', { value: this.encryptionKeyArn });
+    new cdk.CfnOutput(this, 'RuntimeConfigurationSecretArn', { value: this.runtimeConfig.secretArn });
   }
 }

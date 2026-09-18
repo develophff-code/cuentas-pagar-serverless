@@ -210,6 +210,7 @@ model payment_batches {
   tenant_id                                                                 String               @db.Uuid
   status                                                                    payment_batch_status @default(DRAFT)
   idempotency_key                                                           String
+  idempotency_fingerprint                                                   String?               @db.Char(64)
   proposed_by_user_id                                                       String               @db.Uuid
   proposed_at                                                               DateTime             @default(now()) @db.Timestamptz(6)
   confirmed_by_user_id                                                      String?              @db.Uuid
