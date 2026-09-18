@@ -144,6 +144,8 @@ model invoices {
   cancellation_reason                                                String?
   created_at                                                         DateTime           @default(now()) @db.Timestamptz(6)
   updated_at                                                         DateTime           @default(now()) @db.Timestamptz(6)
+  idempotency_key                                                    String?
+  idempotency_fingerprint                                            String?            @db.Char(64)
   application_users_invoices_canceled_by_user_idToapplication_users  application_users? @relation("invoices_canceled_by_user_idToapplication_users", fields: [canceled_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   application_users_invoices_confirmed_by_user_idToapplication_users application_users? @relation("invoices_confirmed_by_user_idToapplication_users", fields: [confirmed_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   application_users_invoices_created_by_user_idToapplication_users   application_users? @relation("invoices_created_by_user_idToapplication_users", fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -155,6 +157,7 @@ model invoices {
 
   @@unique([tenant_id, supplier_id, invoice_type, invoice_number], map: "invoices_fiscal_reference_key", where: raw("((invoice_type = ANY (ARRAY['A'::text, 'C'::text])) AND (status <> 'CANCELED'::invoice_status))"))
   @@unique([id, tenant_id], map: "invoices_id_tenant_key")
+  @@unique([tenant_id, idempotency_key], map: "invoices_tenant_idempotency_key", where: raw("(idempotency_key IS NOT NULL)"))
   @@index([supplier_id], map: "invoices_supplier_idx")
   @@index([tenant_id, scheduled_payment_date], map: "invoices_tenant_scheduled_payment_idx")
   @@index([tenant_id, status, due_date], map: "invoices_tenant_status_due_idx")
@@ -371,24 +374,27 @@ model supplier_bank_accounts {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model suppliers {
-  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenant_id              String                  @db.Uuid
-  business_name          String
-  mobile_phone           String                  @db.VarChar(32)
-  cuit                   String?                 @db.VarChar(13)
-  address                String?
-  category_code          String?
-  is_active              Boolean                 @default(true)
-  created_by_user_id     String?                 @db.Uuid
-  created_at             DateTime                @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime                @default(now()) @db.Timestamptz(6)
-  invoices               invoices[]
-  supplier_bank_accounts supplier_bank_accounts?
-  categories             categories?             @relation(fields: [category_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
-  application_users      application_users?      @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  tenants                tenants                 @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id               String                  @db.Uuid
+  business_name           String
+  mobile_phone            String                  @db.VarChar(32)
+  cuit                    String?                 @db.VarChar(13)
+  address                 String?
+  category_code           String?
+  is_active               Boolean                 @default(true)
+  created_by_user_id      String?                 @db.Uuid
+  created_at              DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                @default(now()) @db.Timestamptz(6)
+  idempotency_key         String?
+  idempotency_fingerprint String?                 @db.Char(64)
+  invoices                invoices[]
+  supplier_bank_accounts  supplier_bank_accounts?
+  categories              categories?             @relation(fields: [category_code], references: [code], onDelete: NoAction, onUpdate: NoAction)
+  application_users       application_users?      @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                 tenants                 @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([id, tenant_id], map: "suppliers_id_tenant_key")
+  @@unique([tenant_id, idempotency_key], map: "suppliers_tenant_idempotency_key", where: raw("(idempotency_key IS NOT NULL)"))
   @@index([tenant_id, category_code], map: "suppliers_tenant_category_idx")
   @@index([tenant_id, cuit], map: "suppliers_tenant_cuit_idx", where: raw("(cuit IS NOT NULL)"))
 }

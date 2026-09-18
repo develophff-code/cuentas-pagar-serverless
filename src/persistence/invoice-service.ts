@@ -7,6 +7,7 @@ import {
 } from '../../packages/domain/src/invoice-policy.js';
 import { DomainRuleViolation } from '../../packages/domain/src/payment-policy.js';
 import { assertMonthlyInvoiceCapacity } from './plan-usage-guard.js';
+import { assertSameCommand, fingerprintCommand, normalizeIdempotencyKey } from './idempotency.js';
 
 export interface InvoiceActor {
   tenantId: string;
@@ -16,6 +17,7 @@ export interface InvoiceActor {
 
 export interface CreateInvoiceOptions {
   confirmImmediately?: boolean;
+  idempotencyKey?: string;
 }
 
 function centsToDecimal(amountInCents: bigint): string {
@@ -31,7 +33,7 @@ export class InvoiceService {
     input: InvoiceInput,
     actor: InvoiceActor,
     options: CreateInvoiceOptions = {},
-  ): Promise<{ id: string; status: 'PENDING_REVIEW' | 'IN_GRID' }> {
+  ): Promise<{ id: string; status: 'PENDING_REVIEW' | 'IN_GRID'; idempotent: boolean }> {
     validateInvoice(input);
     if (input.tenantId !== actor.tenantId) {
       throw new DomainRuleViolation('No se puede crear una factura para otro tenant.');
@@ -44,7 +46,35 @@ export class InvoiceService {
     }
 
     const status = options.confirmImmediately === true ? 'IN_GRID' : 'PENDING_REVIEW';
+    const idempotencyKey = normalizeIdempotencyKey(options.idempotencyKey);
+    const idempotencyFingerprint = idempotencyKey === undefined ? undefined : fingerprintCommand({
+      tenantId: actor.tenantId,
+      supplierId: input.supplierId,
+      invoiceType: input.invoiceType,
+      invoiceNumber: input.invoiceNumber?.trim(),
+      description: input.description?.trim(),
+      amountInCents: input.amountInCents.toString(),
+      issueDate: input.issueDate?.toISOString(),
+      dueDate: input.dueDate.toISOString(),
+      scheduledPaymentDate: input.scheduledPaymentDate?.toISOString(),
+      confirmImmediately: options.confirmImmediately === true,
+    });
     return this.prisma.$transaction(async (transaction) => {
+      if (idempotencyKey !== undefined) {
+        const existing = await transaction.invoices.findFirst({
+          where: { tenant_id: actor.tenantId, idempotency_key: idempotencyKey },
+          select: { id: true, status: true, idempotency_fingerprint: true },
+        });
+        if (existing !== null) {
+          assertSameCommand(existing.idempotency_fingerprint, idempotencyFingerprint!);
+          return {
+            id: existing.id,
+            status: existing.status as 'PENDING_REVIEW' | 'IN_GRID',
+            idempotent: true,
+          };
+        }
+      }
+
       await assertMonthlyInvoiceCapacity(transaction, actor.tenantId);
       const supplier = await transaction.suppliers.findFirst({
         where: { id: input.supplierId, tenant_id: actor.tenantId, is_active: true },
@@ -69,11 +99,17 @@ export class InvoiceService {
             : { scheduled_payment_date: input.scheduledPaymentDate }),
           status,
           created_by_user_id: actor.userId,
+          ...(idempotencyKey === undefined
+            ? {}
+            : {
+                idempotency_key: idempotencyKey,
+                idempotency_fingerprint: idempotencyFingerprint!,
+              }),
           ...(status === 'IN_GRID' ? { confirmed_by_user_id: actor.userId } : {}),
         },
       });
 
-      return { id: invoice.id, status };
+      return { id: invoice.id, status, idempotent: false };
     }, { isolationLevel: 'Serializable' });
   }
 }
