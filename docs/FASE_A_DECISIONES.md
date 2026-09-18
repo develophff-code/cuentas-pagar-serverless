@@ -12,6 +12,8 @@
 - Transcurridos esos siete días de bloqueo, se revoca todo acceso y una nueva utilización requiere registro nuevo. No se borra información automáticamente hasta definir la política legal de retención.
 - `OPERATOR_PAYMENTS` puede proponer o cargar un pago; sólo `ADMIN` lo confirma. Un pago iniciado y confirmado por `ADMIN` no requiere otra aprobación.
 - La región objetivo inicial es `us-east-1` (Norte de Virginia).
+- La cuenta AWS actualmente configurada por SSO se usa exclusivamente como `dev`; `staging` y `prod` requerirán cuentas independientes antes de recibir datos o tráfico real.
+- `dev` tiene la stack `CuentasPagarFoundation-dev` desplegada: KMS, Secrets Manager y un presupuesto mensual de USD 20 con alertas al 80% real y 100% proyectado.
 - Los precios, límites de facturas, usuarios, almacenamiento y capacidades no se codifican: se administran como datos de plan con vigencia.
 - Básico opera por WhatsApp; Profesional y Ultra incorporan aplicación web autenticada con Cognito.
 - YCloud es el proveedor de WhatsApp de producción.

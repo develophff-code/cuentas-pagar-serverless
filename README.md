@@ -11,7 +11,8 @@ Se completó la base de la Fase A:
 - Prueba gratuita de siete días, aviso desde el día cinco, bloqueo operativo por siete días y expiración posterior sin borrado automático de datos.
 - Esquema PostgreSQL local con las invariantes críticas en la base, incluida la idempotencia de pagos y el pago total de cada factura.
 - Catálogo inicial editable de planes, precios ARS y categorías.
-- Infraestructura como código inicial, preparada para `us-east-1` y ambientes `dev`, `staging` y `prod`; todavía no despliega recursos AWS.
+- Fundación `dev` desplegada en `us-east-1`: bootstrap CDK, KMS, Secrets Manager y presupuesto mensual de USD 20.
+- Convenciones de aislamiento para `dev`, `staging` y `prod` documentadas antes de crear recursos de negocio.
 
 Los precios y límites se cargan como versiones iniciales en PostgreSQL y deberán administrarse desde la aplicación, no modificando el código.
 
@@ -26,6 +27,7 @@ npm run cdk:synth
 ```
 
 La migración local inicial está documentada en [database/README.md](database/README.md).
+La estrategia de ambientes y despliegue está en [docs/AMBIENTES_Y_DESPLIEGUE.md](docs/AMBIENTES_Y_DESPLIEGUE.md).
 
 Para regenerar el acceso tipado a la base, sin guardar contraseñas ni código generado en Git:
 
