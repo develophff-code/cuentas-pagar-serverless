@@ -163,6 +163,18 @@ model invoices {
   @@index([tenant_id, status, due_date], map: "invoices_tenant_status_due_idx")
 }
 
+model http_command_receipts {
+  tenant_id           String   @db.Uuid
+  idempotency_key     String
+  command_name        String
+  request_fingerprint String   @db.Char(64)
+  response            Json
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  tenants             tenants  @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([tenant_id, idempotency_key])
+}
+
 model notification_intents {
   id                      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id               String              @db.Uuid
@@ -436,6 +448,7 @@ model tenants {
   documents               documents[]
   invoice_drafts          invoice_drafts[]
   invoices                invoices[]
+  http_command_receipts   http_command_receipts[]
   notification_intents    notification_intents[]
   outbound_messages       outbound_messages[]
   payment_batches         payment_batches[]

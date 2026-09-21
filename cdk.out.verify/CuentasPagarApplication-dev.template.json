@@ -1,0 +1,1029 @@
+{
+ "Resources": {
+  "InboundEvents6195D20A": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "event_key",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "event_key",
+      "KeyType": "HASH"
+     }
+    ],
+    "PointInTimeRecoverySpecification": {
+     "PointInTimeRecoveryEnabled": true
+    },
+    "StreamSpecification": {
+     "StreamViewType": "NEW_IMAGE"
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "TimeToLiveSpecification": {
+     "AttributeName": "expires_at",
+     "Enabled": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/InboundEvents/Resource"
+   }
+  },
+  "ConversationDeadLetterQueueA52E6CD4": {
+   "Type": "AWS::SQS::Queue",
+   "Properties": {
+    "ContentBasedDeduplication": true,
+    "FifoQueue": true,
+    "MessageRetentionPeriod": 1209600,
+    "SqsManagedSseEnabled": true,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/ConversationDeadLetterQueue/Resource"
+   }
+  },
+  "ConversationQueue15491B6D": {
+   "Type": "AWS::SQS::Queue",
+   "Properties": {
+    "ContentBasedDeduplication": false,
+    "DeduplicationScope": "messageGroup",
+    "FifoQueue": true,
+    "FifoThroughputLimit": "perMessageGroupId",
+    "MessageRetentionPeriod": 1209600,
+    "RedrivePolicy": {
+     "deadLetterTargetArn": {
+      "Fn::GetAtt": [
+       "ConversationDeadLetterQueueA52E6CD4",
+       "Arn"
+      ]
+     },
+     "maxReceiveCount": 5
+    },
+    "SqsManagedSseEnabled": true,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "VisibilityTimeout": 180
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/ConversationQueue/Resource"
+   }
+  },
+  "YCloudWebhookIngressServiceRoleCA64312C": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/YCloudWebhookIngress/ServiceRole/Resource"
+   }
+  },
+  "YCloudWebhookIngressServiceRoleDefaultPolicy55811213": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "InboundEvents6195D20A",
+          "Arn"
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "secretsmanager:GetSecretValue",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "CuentasPagarFoundation-dev:ExportsOutputRefRuntimeConfiguration500014AA9B0759AE"
+       }
+      },
+      {
+       "Action": "kms:Decrypt",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "CuentasPagarFoundation-dev:ExportsOutputFnGetAttApplicationEncryptionKey794369ECArn3C7A1101"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "YCloudWebhookIngressServiceRoleDefaultPolicy55811213",
+    "Roles": [
+     {
+      "Ref": "YCloudWebhookIngressServiceRoleCA64312C"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/YCloudWebhookIngress/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "YCloudWebhookIngress9024EBF2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
+     },
+     "S3Key": "77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "INBOUND_EVENTS_TABLE_NAME": {
+       "Ref": "InboundEvents6195D20A"
+      },
+      "RUNTIME_CONFIG_SECRET_ARN": {
+       "Fn::ImportValue": "CuentasPagarFoundation-dev:ExportsOutputRefRuntimeConfiguration500014AA9B0759AE"
+      }
+     }
+    },
+    "Handler": "ycloud-webhook-handler.handler",
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "YCloudWebhookIngressServiceRoleCA64312C",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "Timeout": 6
+   },
+   "DependsOn": [
+    "YCloudWebhookIngressServiceRoleDefaultPolicy55811213",
+    "YCloudWebhookIngressServiceRoleCA64312C"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/YCloudWebhookIngress/Resource",
+    "aws:asset:path": "asset.77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "YCloudOutboxRelayServiceRoleE5A011F0": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/YCloudOutboxRelay/ServiceRole/Resource"
+   }
+  },
+  "YCloudOutboxRelayServiceRoleDefaultPolicyC31736F1": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "dynamodb:ListStreams",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "dynamodb:DescribeStream",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "InboundEvents6195D20A",
+         "StreamArn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "sqs:SendMessage",
+        "sqs:GetQueueAttributes",
+        "sqs:GetQueueUrl"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "ConversationQueue15491B6D",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "YCloudOutboxRelayServiceRoleDefaultPolicyC31736F1",
+    "Roles": [
+     {
+      "Ref": "YCloudOutboxRelayServiceRoleE5A011F0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/YCloudOutboxRelay/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "YCloudOutboxRelay7588D511": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
+     },
+     "S3Key": "77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "CONVERSATION_QUEUE_URL": {
+       "Ref": "ConversationQueue15491B6D"
+      }
+     }
+    },
+    "Handler": "ycloud-outbox-relay.handler",
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "YCloudOutboxRelayServiceRoleE5A011F0",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "YCloudOutboxRelayServiceRoleDefaultPolicyC31736F1",
+    "YCloudOutboxRelayServiceRoleE5A011F0"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/YCloudOutboxRelay/Resource",
+    "aws:asset:path": "asset.77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "InboundEventsOutboxMapping0DE45C2E": {
+   "Type": "AWS::Lambda::EventSourceMapping",
+   "Properties": {
+    "BatchSize": 10,
+    "EventSourceArn": {
+     "Fn::GetAtt": [
+      "InboundEvents6195D20A",
+      "StreamArn"
+     ]
+    },
+    "FunctionName": {
+     "Ref": "YCloudOutboxRelay7588D511"
+    },
+    "MaximumRetryAttempts": 5,
+    "StartingPosition": "TRIM_HORIZON",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/InboundEventsOutboxMapping/Resource"
+   }
+  },
+  "ConversationWorkerServiceRoleEB9F6A3E": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/ConversationWorker/ServiceRole/Resource"
+   }
+  },
+  "ConversationWorkerServiceRoleDefaultPolicyD75B963F": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "sqs:ReceiveMessage",
+        "sqs:ChangeMessageVisibility",
+        "sqs:GetQueueUrl",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "ConversationQueue15491B6D",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ConversationWorkerServiceRoleDefaultPolicyD75B963F",
+    "Roles": [
+     {
+      "Ref": "ConversationWorkerServiceRoleEB9F6A3E"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/ConversationWorker/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ConversationWorkerC23FA860": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
+     },
+     "S3Key": "77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748.zip"
+    },
+    "Handler": "conversation-worker.handler",
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ConversationWorkerServiceRoleEB9F6A3E",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "ConversationWorkerServiceRoleDefaultPolicyD75B963F",
+    "ConversationWorkerServiceRoleEB9F6A3E"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/ConversationWorker/Resource",
+    "aws:asset:path": "asset.77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ConversationWorkerMappingB97077FA": {
+   "Type": "AWS::Lambda::EventSourceMapping",
+   "Properties": {
+    "BatchSize": 1,
+    "EventSourceArn": {
+     "Fn::GetAtt": [
+      "ConversationQueue15491B6D",
+      "Arn"
+     ]
+    },
+    "FunctionName": {
+     "Ref": "ConversationWorkerC23FA860"
+    },
+    "FunctionResponseTypes": [
+     "ReportBatchItemFailures"
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/ConversationWorkerMapping/Resource"
+   }
+  },
+  "PublicApiC8293BC5": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "EndpointConfiguration": {
+     "Types": [
+      "REGIONAL"
+     ]
+    },
+    "Name": "cuentas-pagar-dev",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Resource"
+   }
+  },
+  "PublicApiCloudWatchRole8820E422": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "apigateway.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/CloudWatchRole/Resource"
+   }
+  },
+  "PublicApiAccount21462301": {
+   "Type": "AWS::ApiGateway::Account",
+   "Properties": {
+    "CloudWatchRoleArn": {
+     "Fn::GetAtt": [
+      "PublicApiCloudWatchRole8820E422",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "PublicApiC8293BC5"
+   ],
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Account"
+   }
+  },
+  "PublicApiDeployment375FE7FC419feb19972d3a505b0c5f769de5ac31": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "Description": "Automatically created by the RestApi construct",
+    "RestApiId": {
+     "Ref": "PublicApiC8293BC5"
+    }
+   },
+   "DependsOn": [
+    "PublicApiapi0A2840E3",
+    "PublicApiapiwebhookCB41F8DD",
+    "PublicApiapiwebhookycloudPOST71E74F95",
+    "PublicApiapiwebhookycloud9FC4BDE7"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Deployment/Resource",
+    "aws:cdk:do-not-refactor": true
+   }
+  },
+  "PublicApiDeploymentStagedev328E8973": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "DeploymentId": {
+     "Ref": "PublicApiDeployment375FE7FC419feb19972d3a505b0c5f769de5ac31"
+    },
+    "RestApiId": {
+     "Ref": "PublicApiC8293BC5"
+    },
+    "StageName": "dev",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "TracingEnabled": true
+   },
+   "DependsOn": [
+    "PublicApiAccount21462301"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/DeploymentStage.dev/Resource"
+   }
+  },
+  "PublicApiapi0A2840E3": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "PublicApiC8293BC5",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "api",
+    "RestApiId": {
+     "Ref": "PublicApiC8293BC5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Default/api/Resource"
+   }
+  },
+  "PublicApiapiwebhookCB41F8DD": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "PublicApiapi0A2840E3"
+    },
+    "PathPart": "webhook",
+    "RestApiId": {
+     "Ref": "PublicApiC8293BC5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Default/api/webhook/Resource"
+   }
+  },
+  "PublicApiapiwebhookycloud9FC4BDE7": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "PublicApiapiwebhookCB41F8DD"
+    },
+    "PathPart": "ycloud",
+    "RestApiId": {
+     "Ref": "PublicApiC8293BC5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Default/api/webhook/ycloud/Resource"
+   }
+  },
+  "PublicApiapiwebhookycloudPOSTApiPermissionCuentasPagarApplicationdevPublicApiB231F4E4POSTapiwebhookycloud9A139FF0": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "YCloudWebhookIngress9024EBF2",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "PublicApiC8293BC5"
+       },
+       "/",
+       {
+        "Ref": "PublicApiDeploymentStagedev328E8973"
+       },
+       "/POST/api/webhook/ycloud"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Default/api/webhook/ycloud/POST/ApiPermission.CuentasPagarApplicationdevPublicApiB231F4E4.POST..api.webhook.ycloud"
+   }
+  },
+  "PublicApiapiwebhookycloudPOSTApiPermissionTestCuentasPagarApplicationdevPublicApiB231F4E4POSTapiwebhookycloud9DC18E17": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "YCloudWebhookIngress9024EBF2",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "PublicApiC8293BC5"
+       },
+       "/test-invoke-stage/POST/api/webhook/ycloud"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Default/api/webhook/ycloud/POST/ApiPermission.Test.CuentasPagarApplicationdevPublicApiB231F4E4.POST..api.webhook.ycloud"
+   }
+  },
+  "PublicApiapiwebhookycloudPOST71E74F95": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "YCloudWebhookIngress9024EBF2",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "PublicApiapiwebhookycloud9FC4BDE7"
+    },
+    "RestApiId": {
+     "Ref": "PublicApiC8293BC5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/PublicApi/Default/api/webhook/ycloud/POST/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/22RT0/DMAzFPwv31MCGkDh2/LlNjJb75KZmZG2TMjubqijfHSUdjAOn9/Oz9ewoC1jcP8DNFZ640G1X9KaBUAvqTuGJt6GdLA6ubSC8Y9OTevywGaLiL4bw5slnM0NUPQ5NixBevNVinE2tX34+kpXa+YOmNY6jsbvU/t/d0GEwzMbZqAwOECo3b8+6cb3RU57LFBUvt8hMwlAmUbyEldcdyQqZFI5mh0InnCBUxFKOJmddsNTaeSvqicbeTQNZSe6fqhbc5QNmqIjzyTn+pzhnzrwm+XRtsmaK8TKXb0xB59e+ehm9RGVdS7Dn6+PiDm7Tt+zZmOLgrZiBoJr1G241BRizAQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "PublicApiEndpointEA3E4599": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "PublicApiC8293BC5"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "PublicApiDeploymentStagedev328E8973"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "YCloudWebhookInvokeUrl": {
+   "Description": "URL administrada para pruebas; no sustituye el dominio actual de YCloud.",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "PublicApiC8293BC5"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "PublicApiDeploymentStagedev328E8973"
+      },
+      "/api/webhook/ycloud"
+     ]
+    ]
+   }
+  },
+  "InboundEventsTableName": {
+   "Value": {
+    "Ref": "InboundEvents6195D20A"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

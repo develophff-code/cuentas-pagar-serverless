@@ -33,12 +33,20 @@ también rechaza una reutilización de clave con otra selección de facturas.
 | `POST /v1/tenants/{tenantId}/suppliers` | ADMIN, OPERATOR_UPLOAD | proveedor |
 | `POST /v1/tenants/{tenantId}/invoices` | ADMIN, OPERATOR_UPLOAD | factura en revisión o grilla |
 | `POST /v1/tenants/{tenantId}/payment-batches` | ADMIN, OPERATOR_PAYMENTS | pago registrado o propuesta |
+| `GET /v1/tenants/{tenantId}/payment-grid` | ADMIN, OPERATOR_PAYMENTS | facturas disponibles para pago |
+| `PUT /v1/tenants/{tenantId}/payment-grid/configuration` | ADMIN | horario, ventana y destinatarios de alertas |
 
 Los importes se reciben como `amountInCents` entero para evitar errores de
 redondeo. Una respuesta nueva devuelve `201`; una repetición idempotente,
 `200`. Los errores de autenticación/autorización se mapearán a `401`/`403` al
 conectar el authorizer de Cognito; por ahora el manejador devuelve `400` para
 las violaciones de dominio y un contrato de request incompleto.
+
+La configuración de alertas recibe `timezone` IANA, `notificationTime` en
+formato `HH:mm`, `lookAheadHours` de 1 a 168 y una lista de memberships activas
+del mismo tenant. Es un comando idempotente y sólo está disponible en planes
+con alertas habilitadas; no envía todavía mensajes, que se incorporarán con el
+worker de notificaciones.
 
 ## Ingress YCloud
 

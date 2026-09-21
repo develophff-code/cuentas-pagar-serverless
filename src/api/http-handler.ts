@@ -2,6 +2,7 @@ import { DomainRuleViolation } from '../../packages/domain/src/payment-policy.js
 import type { MembershipRole, PlanCode } from '../../packages/domain/src/model.js';
 import type { InvoiceActor } from '../persistence/invoice-service.js';
 import type { PaymentBatchResult } from '../persistence/payment-batch-service.js';
+import type { PaymentGridConfiguration, PaymentGridEntry } from '../persistence/payment-grid-service.js';
 import type { SupplierActor } from '../persistence/supplier-service.js';
 import type { ApiGatewayRequest, ApiGatewayResponse } from './http-types.js';
 
@@ -52,6 +53,14 @@ export interface ApiDependencies {
     requestedByRole: MembershipRole;
     idempotencyKey: string;
   }, actorUserId: string): Promise<PaymentBatchResult>;
+  listPaymentGrid(actor: AuthenticatedActor): Promise<PaymentGridEntry[]>;
+  updatePaymentGridConfiguration(actor: AuthenticatedActor, input: {
+    timezone: string;
+    notificationTime: string;
+    lookAheadHours: number;
+    enabled: boolean;
+    recipientMembershipIds: readonly string[];
+  }, idempotencyKey: string): Promise<PaymentGridConfiguration>;
 }
 
 const jsonHeaders = { 'content-type': 'application/json; charset=utf-8' };
@@ -127,10 +136,26 @@ function centsValue(payload: Record<string, unknown>): bigint {
   }
 }
 
+function integerValue(payload: Record<string, unknown>, name: string): number {
+  const value = payload[name];
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
+    throw new DomainRuleViolation(`${name} debe ser un entero.`);
+  }
+  return value;
+}
+
+function stringArrayValue(payload: Record<string, unknown>, name: string): string[] {
+  const value = payload[name];
+  if (!Array.isArray(value) || !value.every((item) => typeof item === 'string')) {
+    throw new DomainRuleViolation(`${name} debe ser un arreglo de textos.`);
+  }
+  return value;
+}
+
 export function createHttpHandler(dependencies: ApiDependencies) {
   return async (request: ApiGatewayRequest): Promise<ApiGatewayResponse> => {
     try {
-      const payload = body(request);
+      const payload = request.httpMethod === 'GET' ? {} : body(request);
       if (request.httpMethod === 'POST' && request.path === '/v1/onboarding/web') {
         const identity = authenticatedIdentity(request);
         const planCode = stringValue(payload, 'planCode', true);
@@ -152,7 +177,28 @@ export function createHttpHandler(dependencies: ApiDependencies) {
 
       const requestTenantId = tenantId(request);
       const identity = authenticatedIdentity(request);
+
+      if (request.httpMethod === 'GET' && request.path.endsWith('/payment-grid')) {
+        const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN', 'OPERATOR_PAYMENTS']);
+        const grid = await dependencies.listPaymentGrid(actor);
+        return response(200, { items: grid.map((entry) => ({
+          ...entry, amountInCents: entry.amountInCents.toString(),
+        })) });
+      }
+
       const idempotencyKey = requiredIdempotencyKey(request);
+
+      if (request.httpMethod === 'PUT' && request.path.endsWith('/payment-grid/configuration')) {
+        const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN']);
+        const result = await dependencies.updatePaymentGridConfiguration(actor, {
+          timezone: stringValue(payload, 'timezone', true)!,
+          notificationTime: stringValue(payload, 'notificationTime', true)!,
+          lookAheadHours: integerValue(payload, 'lookAheadHours'),
+          enabled: payload.enabled === true,
+          recipientMembershipIds: stringArrayValue(payload, 'recipientMembershipIds'),
+        }, idempotencyKey);
+        return response(result.idempotent ? 200 : 201, result);
+      }
 
       if (request.httpMethod === 'POST' && request.path.endsWith('/suppliers')) {
         const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN', 'OPERATOR_UPLOAD']);

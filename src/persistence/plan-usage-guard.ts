@@ -21,6 +21,13 @@ async function currentCapabilities(transaction: Transaction, tenantId: string) {
   return capabilities;
 }
 
+export async function assertSupplierNotificationsEnabled(transaction: Transaction, tenantId: string): Promise<void> {
+  const capabilities = await currentCapabilities(transaction, tenantId);
+  if (!capabilities.supplier_notifications_enabled) {
+    throw new DomainRuleViolation('El plan del tenant no habilita alertas configurables.');
+  }
+}
+
 export async function assertSupplierCapacity(transaction: Transaction, tenantId: string): Promise<void> {
   const capabilities = await currentCapabilities(transaction, tenantId);
   const activeSupplierCount = await transaction.suppliers.count({

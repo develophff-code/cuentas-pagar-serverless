@@ -1,0 +1,1409 @@
+{
+ "Resources": {
+  "DataEncryptionKey101796EE": {
+   "Type": "AWS::KMS::Key",
+   "Properties": {
+    "Description": "Cifrado de datos persistentes de Cuentas a Pagar (dev).",
+    "EnableKeyRotation": true,
+    "KeyPolicy": {
+     "Statement": [
+      {
+       "Action": "kms:*",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*"
+       ],
+       "Condition": {
+        "StringEquals": {
+         "kms:ViaService": "secretsmanager.us-east-1.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "kms:CreateGrant",
+        "kms:DescribeKey"
+       ],
+       "Condition": {
+        "StringEquals": {
+         "kms:ViaService": "secretsmanager.us-east-1.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      },
+      {
+       "Action": "kms:Decrypt",
+       "Condition": {
+        "StringEquals": {
+         "kms:ViaService": "secretsmanager.us-east-1.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::GetAtt": [
+          "RdsProxyIAMRoleC275BF0F",
+          "Arn"
+         ]
+        }
+       },
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataEncryptionKey/Resource"
+   }
+  },
+  "DataEncryptionKeyAlias1C564342": {
+   "Type": "AWS::KMS::Alias",
+   "Properties": {
+    "AliasName": "alias/cuentas-pagar-dev-data",
+    "TargetKeyId": {
+     "Fn::GetAtt": [
+      "DataEncryptionKey101796EE",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataEncryptionKey/Alias/Resource"
+   }
+  },
+  "DataVpcAF5158DA": {
+   "Type": "AWS::EC2::VPC",
+   "Properties": {
+    "CidrBlock": "10.0.0.0/16",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true,
+    "InstanceTenancy": "default",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     },
+     {
+      "Key": "Name",
+      "Value": "CuentasPagarData-dev/DataVpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataVpc/Resource"
+   }
+  },
+  "DataVpcisolatedSubnet1Subnet985473A0": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.0.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "isolated"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Isolated"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     },
+     {
+      "Key": "Name",
+      "Value": "CuentasPagarData-dev/DataVpc/isolatedSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "DataVpcAF5158DA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataVpc/isolatedSubnet1/Subnet"
+   }
+  },
+  "DataVpcisolatedSubnet1RouteTable6CCF226B": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     },
+     {
+      "Key": "Name",
+      "Value": "CuentasPagarData-dev/DataVpc/isolatedSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "DataVpcAF5158DA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataVpc/isolatedSubnet1/RouteTable"
+   }
+  },
+  "DataVpcisolatedSubnet1RouteTableAssociation376550C7": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "DataVpcisolatedSubnet1RouteTable6CCF226B"
+    },
+    "SubnetId": {
+     "Ref": "DataVpcisolatedSubnet1Subnet985473A0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataVpc/isolatedSubnet1/RouteTableAssociation"
+   }
+  },
+  "DataVpcisolatedSubnet2SubnetEDB9666F": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.1.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "isolated"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Isolated"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     },
+     {
+      "Key": "Name",
+      "Value": "CuentasPagarData-dev/DataVpc/isolatedSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "DataVpcAF5158DA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataVpc/isolatedSubnet2/Subnet"
+   }
+  },
+  "DataVpcisolatedSubnet2RouteTable5879463D": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     },
+     {
+      "Key": "Name",
+      "Value": "CuentasPagarData-dev/DataVpc/isolatedSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "DataVpcAF5158DA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataVpc/isolatedSubnet2/RouteTable"
+   }
+  },
+  "DataVpcisolatedSubnet2RouteTableAssociationEE8B58D3": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "DataVpcisolatedSubnet2RouteTable5879463D"
+    },
+    "SubnetId": {
+     "Ref": "DataVpcisolatedSubnet2SubnetEDB9666F"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataVpc/isolatedSubnet2/RouteTableAssociation"
+   }
+  },
+  "DataVpcS3GatewayEndpoint2E22E6CD": {
+   "Type": "AWS::EC2::VPCEndpoint",
+   "Properties": {
+    "RouteTableIds": [
+     {
+      "Ref": "DataVpcisolatedSubnet1RouteTable6CCF226B"
+     },
+     {
+      "Ref": "DataVpcisolatedSubnet2RouteTable5879463D"
+     }
+    ],
+    "ServiceName": {
+     "Fn::Join": [
+      "",
+      [
+       "com.amazonaws.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".s3"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     },
+     {
+      "Key": "Name",
+      "Value": "CuentasPagarData-dev/DataVpc"
+     }
+    ],
+    "VpcEndpointType": "Gateway",
+    "VpcId": {
+     "Ref": "DataVpcAF5158DA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DataVpc/S3GatewayEndpoint/Resource"
+   }
+  },
+  "DocumentsBucket9EC9DEB9": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "KMSMasterKeyID": {
+         "Fn::GetAtt": [
+          "DataEncryptionKey101796EE",
+          "Arn"
+         ]
+        },
+        "SSEAlgorithm": "aws:kms"
+       }
+      }
+     ]
+    },
+    "LifecycleConfiguration": {
+     "Rules": [
+      {
+       "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+       },
+       "Id": "ArchiveOriginalDocuments",
+       "Status": "Enabled",
+       "Transitions": [
+        {
+         "StorageClass": "STANDARD_IA",
+         "TransitionInDays": 30
+        },
+        {
+         "StorageClass": "GLACIER",
+         "TransitionInDays": 90
+        }
+       ]
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DocumentsBucket/Resource"
+   }
+  },
+  "DocumentsBucketPolicy1F991BD4": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "DocumentsBucket9EC9DEB9"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "DocumentsBucket9EC9DEB9",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "DocumentsBucket9EC9DEB9",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DocumentsBucket/Policy/Resource"
+   }
+  },
+  "DatabaseSecurityGroup7319C0F6": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Accepts PostgreSQL only from RDS Proxy.",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "255.255.255.255/32",
+      "Description": "Disallow all traffic",
+      "FromPort": 252,
+      "IpProtocol": "icmp",
+      "ToPort": 86
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "VpcId": {
+     "Ref": "DataVpcAF5158DA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DatabaseSecurityGroup/Resource"
+   }
+  },
+  "DatabaseSecurityGroupfromCuentasPagarDatadevProxySecurityGroupADB339FF543208B5EC7E": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "PostgreSQL desde RDS Proxy",
+    "FromPort": 5432,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "DatabaseSecurityGroup7319C0F6",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ProxySecurityGroup6DC814C1",
+      "GroupId"
+     ]
+    },
+    "ToPort": 5432
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DatabaseSecurityGroup/from CuentasPagarDatadevProxySecurityGroupADB339FF:5432"
+   }
+  },
+  "DatabaseSecurityGroupfromCuentasPagarDatadevProxySecurityGroupADB339FFIndirectPort318A80D6": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow connections to the database Cluster from the Proxy",
+    "FromPort": {
+     "Fn::GetAtt": [
+      "AuroraPostgresAE2C8B71",
+      "Endpoint.Port"
+     ]
+    },
+    "GroupId": {
+     "Fn::GetAtt": [
+      "DatabaseSecurityGroup7319C0F6",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ProxySecurityGroup6DC814C1",
+      "GroupId"
+     ]
+    },
+    "ToPort": {
+     "Fn::GetAtt": [
+      "AuroraPostgresAE2C8B71",
+      "Endpoint.Port"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DatabaseSecurityGroup/from CuentasPagarDatadevProxySecurityGroupADB339FF:{IndirectPort}"
+   }
+  },
+  "ProxySecurityGroup6DC814C1": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Private RDS Proxy endpoint for application Lambdas.",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "VpcId": {
+     "Ref": "DataVpcAF5158DA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/ProxySecurityGroup/Resource"
+   }
+  },
+  "ProxySecurityGroupfromCuentasPagarDatadevApplicationSecurityGroup416963205432FF0F110B": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "PostgreSQL desde Lambdas de aplicación",
+    "FromPort": 5432,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "ProxySecurityGroup6DC814C1",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ApplicationSecurityGroup3903A0DC",
+      "GroupId"
+     ]
+    },
+    "ToPort": 5432
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/ProxySecurityGroup/from CuentasPagarDatadevApplicationSecurityGroup41696320:5432"
+   }
+  },
+  "ApplicationSecurityGroup3903A0DC": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Reserved group for application Lambdas that access RDS Proxy.",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "VpcId": {
+     "Ref": "DataVpcAF5158DA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/ApplicationSecurityGroup/Resource"
+   }
+  },
+  "DatabaseCredentials8547B3E7": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Generated by the CDK for stack: ",
+       {
+        "Ref": "AWS::StackName"
+       }
+      ]
+     ]
+    },
+    "GenerateSecretString": {
+     "ExcludeCharacters": " %+~`#$&*()|[]{}:;<>?!'/@\"\\",
+     "GenerateStringKey": "password",
+     "PasswordLength": 30,
+     "SecretStringTemplate": "{\"username\":\"app_owner\",\"dbname\":\"cuentas_pagar\"}"
+    },
+    "KmsKeyId": {
+     "Fn::GetAtt": [
+      "DataEncryptionKey101796EE",
+      "Arn"
+     ]
+    },
+    "Name": "cuentas-pagar/dev/database-credentials",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DatabaseCredentials/Resource"
+   }
+  },
+  "DatabaseCredentialsAttachment7BAB329F": {
+   "Type": "AWS::SecretsManager::SecretTargetAttachment",
+   "Properties": {
+    "SecretId": {
+     "Ref": "DatabaseCredentials8547B3E7"
+    },
+    "TargetId": {
+     "Ref": "AuroraPostgresAE2C8B71"
+    },
+    "TargetType": "AWS::RDS::DBCluster"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/DatabaseCredentials/Attachment/Resource"
+   }
+  },
+  "PostgresParameterGroupC21E742E": {
+   "Type": "AWS::RDS::DBClusterParameterGroup",
+   "Properties": {
+    "Description": "Cluster parameter group for aurora-postgresql16",
+    "Family": "aurora-postgresql16",
+    "Parameters": {
+     "rds.force_ssl": "1"
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/PostgresParameterGroup/Resource"
+   }
+  },
+  "AuroraPostgresSubnetsF350B5D7": {
+   "Type": "AWS::RDS::DBSubnetGroup",
+   "Properties": {
+    "DBSubnetGroupDescription": "Subnets for AuroraPostgres database",
+    "SubnetIds": [
+     {
+      "Ref": "DataVpcisolatedSubnet1Subnet985473A0"
+     },
+     {
+      "Ref": "DataVpcisolatedSubnet2SubnetEDB9666F"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/AuroraPostgres/Subnets/Default"
+   }
+  },
+  "AuroraPostgresAE2C8B71": {
+   "Type": "AWS::RDS::DBCluster",
+   "Properties": {
+    "BackupRetentionPeriod": 7,
+    "CopyTagsToSnapshot": true,
+    "DBClusterParameterGroupName": {
+     "Ref": "PostgresParameterGroupC21E742E"
+    },
+    "DBSubnetGroupName": {
+     "Ref": "AuroraPostgresSubnetsF350B5D7"
+    },
+    "DatabaseName": "cuentas_pagar",
+    "DeletionProtection": true,
+    "EnableCloudwatchLogsExports": [
+     "postgresql"
+    ],
+    "Engine": "aurora-postgresql",
+    "EngineVersion": "16.6",
+    "KmsKeyId": {
+     "Fn::GetAtt": [
+      "DataEncryptionKey101796EE",
+      "Arn"
+     ]
+    },
+    "MasterUserPassword": {
+     "Fn::Join": [
+      "",
+      [
+       "{{resolve:secretsmanager:",
+       {
+        "Ref": "DatabaseCredentials8547B3E7"
+       },
+       ":SecretString:password::}}"
+      ]
+     ]
+    },
+    "MasterUsername": {
+     "Fn::Join": [
+      "",
+      [
+       "{{resolve:secretsmanager:",
+       {
+        "Ref": "DatabaseCredentials8547B3E7"
+       },
+       ":SecretString:username::}}"
+      ]
+     ]
+    },
+    "Port": 5432,
+    "ServerlessV2ScalingConfiguration": {
+     "MaxCapacity": 2,
+     "MinCapacity": 0.5
+    },
+    "StorageEncrypted": true,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "VpcSecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "DatabaseSecurityGroup7319C0F6",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/AuroraPostgres/Resource"
+   }
+  },
+  "AuroraPostgresLogRetentionpostgresql138B99D1": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/rds/cluster/",
+       {
+        "Ref": "AuroraPostgresAE2C8B71"
+       },
+       "/postgresql"
+      ]
+     ]
+    },
+    "RetentionInDays": 30
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/AuroraPostgres/LogRetentionpostgresql/Resource"
+   }
+  },
+  "AuroraPostgreswriterFBE88A11": {
+   "Type": "AWS::RDS::DBInstance",
+   "Properties": {
+    "DBClusterIdentifier": {
+     "Ref": "AuroraPostgresAE2C8B71"
+    },
+    "DBInstanceClass": "db.serverless",
+    "Engine": "aurora-postgresql",
+    "PromotionTier": 0,
+    "PubliclyAccessible": false,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "DependsOn": [
+    "DataVpcisolatedSubnet1RouteTableAssociation376550C7",
+    "DataVpcisolatedSubnet2RouteTableAssociationEE8B58D3"
+   ],
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/AuroraPostgres/writer/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:PutRetentionPolicy",
+        "logs:DeleteRetentionPolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "Roles": [
+     {
+      "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Handler": "index.handler",
+    "Runtime": "nodejs24.x",
+    "Timeout": 900,
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
+     },
+     "S3Key": "2819175352ad1ce0dae768e83fc328fb70fb5f10b4a8ff0ccbcb791f02b0716d.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      "Arn"
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "DependsOn": [
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource",
+    "aws:asset:path": "asset.2819175352ad1ce0dae768e83fc328fb70fb5f10b4a8ff0ccbcb791f02b0716d",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "RdsProxyIAMRoleC275BF0F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "rds.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/RdsProxy/IAMRole/Resource"
+   }
+  },
+  "RdsProxyIAMRoleDefaultPolicy82D221E7": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "DatabaseCredentials8547B3E7"
+       }
+      },
+      {
+       "Action": "kms:Decrypt",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "DataEncryptionKey101796EE",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "RdsProxyIAMRoleDefaultPolicy82D221E7",
+    "Roles": [
+     {
+      "Ref": "RdsProxyIAMRoleC275BF0F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/RdsProxy/IAMRole/DefaultPolicy/Resource"
+   }
+  },
+  "RdsProxyE8EC09E1": {
+   "Type": "AWS::RDS::DBProxy",
+   "Properties": {
+    "Auth": [
+     {
+      "AuthScheme": "SECRETS",
+      "IAMAuth": "DISABLED",
+      "SecretArn": {
+       "Ref": "DatabaseCredentials8547B3E7"
+      }
+     }
+    ],
+    "DBProxyName": "RdsProxy",
+    "EngineFamily": "POSTGRESQL",
+    "IdleClientTimeout": 300,
+    "RequireTLS": true,
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "RdsProxyIAMRoleC275BF0F",
+      "Arn"
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "CostApprovalRequired",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "VpcSecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "ProxySecurityGroup6DC814C1",
+       "GroupId"
+      ]
+     }
+    ],
+    "VpcSubnetIds": [
+     {
+      "Ref": "DataVpcisolatedSubnet1Subnet985473A0"
+     },
+     {
+      "Ref": "DataVpcisolatedSubnet2SubnetEDB9666F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/RdsProxy/Resource"
+   }
+  },
+  "RdsProxyProxyTargetGroupD847F6F0": {
+   "Type": "AWS::RDS::DBProxyTargetGroup",
+   "Properties": {
+    "ConnectionPoolConfigurationInfo": {
+     "MaxConnectionsPercent": 80
+    },
+    "DBClusterIdentifiers": [
+     {
+      "Ref": "AuroraPostgresAE2C8B71"
+     }
+    ],
+    "DBProxyName": {
+     "Ref": "RdsProxyE8EC09E1"
+    },
+    "TargetGroupName": "default"
+   },
+   "DependsOn": [
+    "AuroraPostgresAE2C8B71",
+    "AuroraPostgreswriterFBE88A11"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/RdsProxy/ProxyTargetGroup"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31SS0/DMAz+LdyzABtC4rgHmiaQqNppV+SlpmRtkyp2Nqqq/x216VY0EKfvZbuW06mcPj7Juxs40USl+aTQe9kkDCoXcKL3Ji9JNi9Yi+WH6WBeaKBO9KQVqKay2VWqs3bRUkROH4Ex8XuD3Jkji61n3MK+wNEfvTmRVRpYWyPWwHiCelepZ5NWVhsexl9kgso7zfXaWV/14/41NiZzSNQKmslm4VUeNhpYgMgWWtWjPeggFkDYCpeSbFbAsAfCBJVDFhE4KJHRXb68WiwLT4zuKjo3DqkIF/jR9ss4V/ZiY4jBKLzMiZz9qkN2TbfgsmFSK6hflEowkKGTTThOt3uAUDxnBvVZYrj130krCpuRfLVZjIymfyuavQMRMsl5B0JDKZvYhkfucTxsYG0rYiTrnQo1Z973JwyZNlkXvHmuPLfC2BTlgW6P0wd53/2rB9J64rxhXaKMA34DaXdghcgCAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarData-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "DocumentsBucketName": {
+   "Value": {
+    "Ref": "DocumentsBucket9EC9DEB9"
+   }
+  },
+  "DatabaseCredentialsSecretArn": {
+   "Value": {
+    "Ref": "DatabaseCredentials8547B3E7"
+   }
+  },
+  "RdsProxyEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "RdsProxyE8EC09E1",
+     "Endpoint"
+    ]
+   }
+  },
+  "ApplicationSecurityGroupId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "ApplicationSecurityGroup3903A0DC",
+     "GroupId"
+    ]
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

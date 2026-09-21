@@ -10,6 +10,14 @@ function dependencies(): ApiDependencies {
     createSupplier: async () => ({ id: 'supplier-1', idempotent: false }),
     createInvoice: async () => ({ id: 'invoice-1', status: 'IN_GRID', idempotent: false }),
     createPaymentBatch: async () => ({ batchId: 'batch-1', status: 'RECORDED', totalInCents: 1250n, idempotent: false }),
+    listPaymentGrid: async () => [{
+      id: 'invoice-1', supplierId: 'supplier-1', supplierBusinessName: 'Proveedor SA', amountInCents: 1250n,
+      dueDate: new Date('2026-10-01T00:00:00.000Z'), status: 'IN_GRID',
+    }],
+    updatePaymentGridConfiguration: async () => ({
+      timezone: 'America/Argentina/Buenos_Aires', notificationTime: '08:00', lookAheadHours: 24,
+      enabled: true, recipientMembershipIds: ['membership-1'], idempotent: false,
+    }),
   };
 }
 
@@ -76,4 +84,34 @@ test('onboarding exige identidad autenticada y nunca un sub enviado por el clien
     }), requestContext: { authorizer: { claims: { sub: 'actual-sub', email: 'admin@example.com' } } },
   });
   assert.equal(response.statusCode, 201);
+});
+
+test('devuelve la grilla sin exigir cuerpo ni clave de idempotencia', async () => {
+  const request = operationalRequest('/v1/tenants/tenant-1/payment-grid', {});
+  request.httpMethod = 'GET';
+  request.body = null;
+  request.headers = {};
+  const response = await createHttpHandler(dependencies())(request);
+  assert.equal(response.statusCode, 200);
+  assert.equal(JSON.parse(response.body).items[0].amountInCents, '1250');
+});
+
+test('configura alertas de grilla como comando idempotente de ADMIN', async () => {
+  let capturedKey: string | undefined;
+  const fake = dependencies();
+  fake.updatePaymentGridConfiguration = async (_actor, _input, key) => {
+    capturedKey = key;
+    return {
+      timezone: 'America/Argentina/Buenos_Aires', notificationTime: '08:00', lookAheadHours: 24,
+      enabled: true, recipientMembershipIds: ['membership-1'], idempotent: false,
+    };
+  };
+  const request = operationalRequest('/v1/tenants/tenant-1/payment-grid/configuration', {
+    timezone: 'America/Argentina/Buenos_Aires', notificationTime: '08:00', lookAheadHours: 24,
+    enabled: true, recipientMembershipIds: ['membership-1'],
+  });
+  request.httpMethod = 'PUT';
+  const response = await createHttpHandler(fake)(request);
+  assert.equal(response.statusCode, 201);
+  assert.equal(capturedKey, 'request-1');
 });

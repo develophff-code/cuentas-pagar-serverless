@@ -1,0 +1,604 @@
+{
+  "/CuentasPagarData-dev": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    },
+    {
+      "type": "aws:cdk:acknowledged-rules",
+      "data": {
+        "CloudFormation-Validate::W3010": "Literal AZs in template are the result of accessing stack.availabilityZones, this is expected and safe"
+      },
+      "trace": [
+        "    ...new Vpc2 in aws-cdk-lib...",
+        "    at new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:56:21)",
+        "    at <anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "    ...node internals..."
+      ]
+    },
+    {
+      "type": "aws:cdk:stack-tags",
+      "data": [
+        {
+          "key": "Application",
+          "value": "cuentas-pagar"
+        },
+        {
+          "key": "CostApprovalRequired",
+          "value": "true"
+        },
+        {
+          "key": "Environment",
+          "value": "dev"
+        },
+        {
+          "key": "ManagedBy",
+          "value": "CDK"
+        }
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DocumentsBucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DocumentsBucketName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:138:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DatabaseCredentialsSecretArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseCredentialsSecretArn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:139:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/RdsProxyEndpoint": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RdsProxyEndpoint"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:140:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/ApplicationSecurityGroupId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApplicationSecurityGroupId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:141:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataEncryptionKey/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataEncryptionKey101796EE"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Key2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:50:25)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataVpc/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataVpcAF5158DA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:56:21)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DocumentsBucket/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DocumentsBucket9EC9DEB9"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:65:27)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DatabaseSecurityGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseSecurityGroup7319C0F6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new SecurityGroup2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:82:39)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DatabaseSecurityGroup/from CuentasPagarDatadevProxySecurityGroupADB339FF:5432": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseSecurityGroupfromCuentasPagarDatadevProxySecurityGroupADB339FF543208B5EC7E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:97:31)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DatabaseSecurityGroup/from CuentasPagarDatadevProxySecurityGroupADB339FF:{IndirectPort}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseSecurityGroupfromCuentasPagarDatadevProxySecurityGroupADB339FFIndirectPort318A80D6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/ProxySecurityGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ProxySecurityGroup6DC814C1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new SecurityGroup2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:87:36)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/ProxySecurityGroup/from CuentasPagarDatadevApplicationSecurityGroup41696320:5432": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ProxySecurityGroupfromCuentasPagarDatadevApplicationSecurityGroup416963205432FF0F110B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:98:28)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/ApplicationSecurityGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApplicationSecurityGroup3903A0DC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new SecurityGroup2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:92:42)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DatabaseCredentials/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseCredentials8547B3E7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseSecret2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:99:32)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/PostgresParameterGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PostgresParameterGroupC21E742E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:110:26)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/AuroraPostgres/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuroraPostgresAE2C8B71"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:110:26)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:110:26)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/RdsProxy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RdsProxyE8EC09E1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseProxy2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:128:23)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/RdsProxy/ProxyTargetGroup": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RdsProxyProxyTargetGroupD847F6F0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseProxy2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:128:23)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataEncryptionKey/Alias/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataEncryptionKeyAlias1C564342"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Key2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:50:25)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataVpc/isolatedSubnet1/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataVpcisolatedSubnet1Subnet985473A0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\aws-ec2\\lib\\vpc.js:1:274 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataVpc/isolatedSubnet1/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataVpcisolatedSubnet1RouteTable6CCF226B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\aws-ec2\\lib\\vpc.js:1:274 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataVpc/isolatedSubnet1/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataVpcisolatedSubnet1RouteTableAssociation376550C7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\aws-ec2\\lib\\vpc.js:1:274 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataVpc/isolatedSubnet2/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataVpcisolatedSubnet2SubnetEDB9666F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\aws-ec2\\lib\\vpc.js:1:274 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataVpc/isolatedSubnet2/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataVpcisolatedSubnet2RouteTable5879463D"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\aws-ec2\\lib\\vpc.js:1:274 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataVpc/isolatedSubnet2/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataVpcisolatedSubnet2RouteTableAssociationEE8B58D3"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\aws-ec2\\lib\\vpc.js:1:274 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DataVpc/S3GatewayEndpoint/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DataVpcS3GatewayEndpoint2E22E6CD"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addGatewayEndpoint in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:64:13)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DocumentsBucket/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DocumentsBucketPolicy1F991BD4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:65:27)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)"
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/DatabaseCredentials/Attachment/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseCredentialsAttachment7BAB329F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:110:26)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/AuroraPostgres/Subnets/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuroraPostgresSubnetsF350B5D7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:110:26)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/AuroraPostgres/LogRetentionpostgresql/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuroraPostgresLogRetentionpostgresql138B99D1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:110:26)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/AuroraPostgres/writer/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuroraPostgreswriterFBE88A11"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:110:26)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:110:26)"
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/RdsProxy/IAMRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RdsProxyIAMRoleC275BF0F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseProxy2 in aws-cdk-lib...",
+        "new DataStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\data-stack.js:128:23)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:58:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarData-dev/RdsProxy/IAMRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RdsProxyIAMRoleDefaultPolicy82D221E7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ]
+}

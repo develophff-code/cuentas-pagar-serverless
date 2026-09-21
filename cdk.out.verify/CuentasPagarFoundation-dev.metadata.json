@@ -1,0 +1,222 @@
+{
+  "/CuentasPagarFoundation-dev": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    },
+    {
+      "type": "aws:cdk:stack-tags",
+      "data": [
+        {
+          "key": "Application",
+          "value": "cuentas-pagar"
+        },
+        {
+          "key": "Environment",
+          "value": "dev"
+        },
+        {
+          "key": "ManagedBy",
+          "value": "CDK"
+        }
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/DeploymentStage": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeploymentStage"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:54:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/TargetRegion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "TargetRegion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:58:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/BudgetAlertEmail": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BudgetAlertEmail"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:80:38)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/MonthlyCostBudget": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MonthlyCostBudget"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:85:13)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/ApplicationEncryptionKeyArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApplicationEncryptionKeyArn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:114:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/RuntimeConfigurationSecretArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RuntimeConfigurationSecretArn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:115:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/ApplicationEncryptionKey/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApplicationEncryptionKey794369EC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Key2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:62:31)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/RuntimeConfiguration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RuntimeConfiguration500014AA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Secret2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:69:30)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/Exports/Output{\"Ref\":\"RuntimeConfiguration500014AA\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefRuntimeConfiguration500014AA9B0759AE"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/Exports/Output{\"Fn::GetAtt\":[\"ApplicationEncryptionKey794369EC\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttApplicationEncryptionKey794369ECArn3C7A1101"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarFoundation-dev/ApplicationEncryptionKey/Alias/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApplicationEncryptionKeyAlias96413EA4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Key2 in aws-cdk-lib...",
+        "new FoundationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\foundation-stack.js:62:31)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:48:20)",
+        "...node internals..."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,314 @@
+{
+ "Outputs": {
+  "DeploymentStage": {
+   "Description": "Ambiente lógico del despliegue.",
+   "Value": "dev"
+  },
+  "TargetRegion": {
+   "Description": "Región objetivo para la infraestructura.",
+   "Value": "us-east-1"
+  },
+  "ApplicationEncryptionKeyArn": {
+   "Value": {
+    "Fn::GetAtt": [
+     "ApplicationEncryptionKey794369EC",
+     "Arn"
+    ]
+   }
+  },
+  "RuntimeConfigurationSecretArn": {
+   "Value": {
+    "Ref": "RuntimeConfiguration500014AA"
+   }
+  },
+  "ExportsOutputRefRuntimeConfiguration500014AA9B0759AE": {
+   "Value": {
+    "Ref": "RuntimeConfiguration500014AA"
+   },
+   "Export": {
+    "Name": "CuentasPagarFoundation-dev:ExportsOutputRefRuntimeConfiguration500014AA9B0759AE"
+   }
+  },
+  "ExportsOutputFnGetAttApplicationEncryptionKey794369ECArn3C7A1101": {
+   "Value": {
+    "Fn::GetAtt": [
+     "ApplicationEncryptionKey794369EC",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "CuentasPagarFoundation-dev:ExportsOutputFnGetAttApplicationEncryptionKey794369ECArn3C7A1101"
+   }
+  }
+ },
+ "Resources": {
+  "ApplicationEncryptionKey794369EC": {
+   "Type": "AWS::KMS::Key",
+   "Properties": {
+    "Description": "Cifrado de aplicación Cuentas a Pagar (dev).",
+    "EnableKeyRotation": true,
+    "KeyPolicy": {
+     "Statement": [
+      {
+       "Action": "kms:*",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*"
+       ],
+       "Condition": {
+        "StringEquals": {
+         "kms:ViaService": "secretsmanager.us-east-1.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "kms:CreateGrant",
+        "kms:DescribeKey"
+       ],
+       "Condition": {
+        "StringEquals": {
+         "kms:ViaService": "secretsmanager.us-east-1.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarFoundation-dev/ApplicationEncryptionKey/Resource"
+   }
+  },
+  "ApplicationEncryptionKeyAlias96413EA4": {
+   "Type": "AWS::KMS::Alias",
+   "Properties": {
+    "AliasName": "alias/cuentas-pagar-dev",
+    "TargetKeyId": {
+     "Fn::GetAtt": [
+      "ApplicationEncryptionKey794369EC",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarFoundation-dev/ApplicationEncryptionKey/Alias/Resource"
+   }
+  },
+  "RuntimeConfiguration500014AA": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "Description": "Contenedor de secretos de runtime. Los valores reales se agregan por ambiente.",
+    "GenerateSecretString": {
+     "GenerateStringKey": "bootstrapNonce",
+     "SecretStringTemplate": "{\"status\":\"bootstrap\"}"
+    },
+    "KmsKeyId": {
+     "Fn::GetAtt": [
+      "ApplicationEncryptionKey794369EC",
+      "Arn"
+     ]
+    },
+    "Name": "cuentas-pagar/dev/runtime-config",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarFoundation-dev/RuntimeConfiguration/Resource"
+   }
+  },
+  "MonthlyCostBudget": {
+   "Type": "AWS::Budgets::Budget",
+   "Properties": {
+    "Budget": {
+     "BudgetLimit": {
+      "Amount": 20,
+      "Unit": "USD"
+     },
+     "BudgetName": "cuentas-pagar-dev-monthly-cost",
+     "BudgetType": "COST",
+     "TimeUnit": "MONTHLY"
+    },
+    "NotificationsWithSubscribers": [
+     {
+      "Notification": {
+       "ComparisonOperator": "GREATER_THAN",
+       "NotificationType": "ACTUAL",
+       "Threshold": 80,
+       "ThresholdType": "PERCENTAGE"
+      },
+      "Subscribers": [
+       {
+        "Address": {
+         "Ref": "BudgetAlertEmail"
+        },
+        "SubscriptionType": "EMAIL"
+       }
+      ]
+     },
+     {
+      "Notification": {
+       "ComparisonOperator": "GREATER_THAN",
+       "NotificationType": "FORECASTED",
+       "Threshold": 100,
+       "ThresholdType": "PERCENTAGE"
+      },
+      "Subscribers": [
+       {
+        "Address": {
+         "Ref": "BudgetAlertEmail"
+        },
+        "SubscriptionType": "EMAIL"
+       }
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarFoundation-dev/MonthlyCostBudget"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/yWOTQ6CMBCFz+K+jNoYE5fK0gVGDmAGGEiBVtOZSkzTu5vC6n3vZ/E06PMFDjtcuGi7qZhNA7EWbCdV9q4K8gmicOFXnCxDvNMv51mus0HOZoWkmFpPwhYdDuQh1qvPg42SakI3kDCUvbutmHL7QI+WhHxS7t0RjLz/6hMc86uRjSl8cGIswXPTP9Mm86WyAAAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarFoundation-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Parameters": {
+  "BudgetAlertEmail": {
+   "Type": "String",
+   "AllowedPattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+   "Description": "Email que recibe las alertas de presupuesto del ambiente dev."
+  },
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

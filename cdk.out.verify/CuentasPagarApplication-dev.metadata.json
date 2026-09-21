@@ -1,0 +1,496 @@
+{
+  "/CuentasPagarApplication-dev": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    },
+    {
+      "type": "aws:cdk:warning",
+      "data": "No cross-stack-reference strength configured, defaulting to \"strong\". We recommend you set feature flag \"@aws-cdk/core:defaultCrossStackReferences\" to \"both\", then deploy everywhere, then set it to \"weak\". Alternatively, set it to \"strong\" explicitly to lock in the current producer-protecting behavior. (See: https://github.com/aws/aws-cdk/blob/main/packages/aws-cdk-lib/README.md#reference-strength) [ack: @aws-cdk/core:crossStackReferencesDefaultStrong]",
+      "trace": [
+        "Annotations.addMessage (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\annotations.js:1:3506)",
+        "Annotations.addWarningV2 (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\annotations.js:1:2194)",
+        "resolveValue (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\private\\refs.js:1:6980)",
+        "resolveReferences (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\private\\refs.js:1:4848)",
+        "prepareApp (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\private\\prepare-app.js:1:1240)",
+        "synthesize (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\private\\synthesis.js:1:2625)",
+        "App.synth (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\stage.js:1:5061)",
+        "App.synth (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\app.js:1:5008)",
+        "process.<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\node_modules\\aws-cdk-lib\\core\\lib\\app.js:1:3918)",
+        "Object.onceWrapper (node:events:631:26)",
+        "process.emit (node:events:509:28)"
+      ]
+    },
+    {
+      "type": "aws:cdk:stack-tags",
+      "data": [
+        {
+          "key": "Application",
+          "value": "cuentas-pagar"
+        },
+        {
+          "key": "Environment",
+          "value": "dev"
+        },
+        {
+          "key": "ManagedBy",
+          "value": "CDK"
+        }
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/YCloudWebhookInvokeUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "YCloudWebhookInvokeUrl"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:136:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/InboundEventsTableName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "InboundEventsTableName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:140:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/InboundEvents/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "InboundEvents6195D20A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:50:31)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/ConversationDeadLetterQueue/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConversationDeadLetterQueueA52E6CD4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:58:33)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/ConversationQueue/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConversationQueue15491B6D"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:65:35)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/YCloudWebhookIngress/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "YCloudWebhookIngress9024EBF2"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:76:32)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/YCloudOutboxRelay/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "YCloudOutboxRelay7588D511"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:92:29)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/InboundEventsOutboxMapping/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "InboundEventsOutboxMapping0DE45C2E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new EventSourceMapping2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:102:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/ConversationWorker/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConversationWorkerC23FA860"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:109:36)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/ConversationWorkerMapping/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConversationWorkerMappingB97077FA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new EventSourceMapping2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:117:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiC8293BC5"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new RestApi2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Account": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiAccount21462301"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new RestApi2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Endpoint": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiEndpointEA3E4599"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new RestApi2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/YCloudWebhookIngress/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "YCloudWebhookIngressServiceRoleCA64312C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:76:32)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/YCloudOutboxRelay/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "YCloudOutboxRelayServiceRoleE5A011F0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:92:29)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/ConversationWorker/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConversationWorkerServiceRoleEB9F6A3E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:109:36)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/CloudWatchRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiCloudWatchRole8820E422"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new RestApi2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Deployment/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiDeployment375FE7FC419feb19972d3a505b0c5f769de5ac31"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new RestApi2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/DeploymentStage.dev/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiDeploymentStagedev328E8973"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new RestApi2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/YCloudWebhookIngress/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "YCloudWebhookIngressServiceRoleDefaultPolicy55811213"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/YCloudOutboxRelay/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "YCloudOutboxRelayServiceRoleDefaultPolicyC31736F1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.grantStreamRead in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:100:23)"
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/ConversationWorker/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConversationWorkerServiceRoleDefaultPolicyD75B963F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Default/api/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiapi0A2840E3"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...RootResource.addResource in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:132:34)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Default/api/webhook/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiapiwebhookCB41F8DD"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addResource in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:132:53)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Default/api/webhook/ycloud/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiapiwebhookycloud9FC4BDE7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addResource in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:132:76)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Default/api/webhook/ycloud/POST/ApiPermission.CuentasPagarApplicationdevPublicApiB231F4E4.POST..api.webhook.ycloud": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiapiwebhookycloudPOSTApiPermissionCuentasPagarApplicationdevPublicApiB231F4E4POSTapiwebhookycloud9A139FF0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addMethod in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:133:17)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Default/api/webhook/ycloud/POST/ApiPermission.Test.CuentasPagarApplicationdevPublicApiB231F4E4.POST..api.webhook.ycloud": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiapiwebhookycloudPOSTApiPermissionTestCuentasPagarApplicationdevPublicApiB231F4E4POSTapiwebhookycloud9DC18E17"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addMethod in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:133:17)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/PublicApi/Default/api/webhook/ycloud/POST/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PublicApiapiwebhookycloudPOST71E74F95"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addMethod in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:133:17)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ]
+}

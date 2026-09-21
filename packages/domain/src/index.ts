@@ -6,3 +6,4 @@ export * from './initial-plan-catalog.js';
 export * from './invoice-policy.js';
 export * from './membership-policy.js';
 export * from './tenant-access-policy.js';
+export * from './payment-grid-policy.js';
