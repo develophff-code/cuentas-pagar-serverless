@@ -18,8 +18,10 @@ test('crea ingress YCloud con API REST, Lambda y DynamoDB idempotente', () => {
   template.resourceCountIs('AWS::DynamoDB::Table', 1);
   template.resourceCountIs('AWS::Lambda::Function', 3);
   template.resourceCountIs('AWS::ApiGateway::RestApi', 1);
-  template.resourceCountIs('AWS::SQS::Queue', 2);
+  template.resourceCountIs('AWS::SQS::Queue', 3);
   template.resourceCountIs('AWS::Lambda::EventSourceMapping', 2);
+  template.resourceCountIs('AWS::CloudWatch::Alarm', 4);
+  template.resourceCountIs('AWS::Logs::LogGroup', 3);
   template.hasResourceProperties('AWS::ApiGateway::Method', {
     HttpMethod: 'POST',
     AuthorizationType: 'NONE',

@@ -14,17 +14,28 @@ La solución permite administrar proveedores, comprobantes, facturas y pagos com
 
 ## Estado actual
 
-La **Fase A está cerrada**. El repositorio ya cuenta con:
+La **Fase A está cerrada** y la implementación de la **Fase B está completa en
+código y sintetizada**, pendiente de aprobación de costos y despliegue en
+`dev`. El repositorio cuenta con:
 
 - Modelo de dominio y reglas para tenants, planes, membresías, proveedores, facturas y pagos.
 - Reglas de autorización: el administrador confirma pagos propuestos por `OPERATOR_PAYMENTS`; `OPERATOR_UPLOAD` no puede confirmar facturas ni pagos.
 - Prueba gratuita de siete días, avisos desde el día cinco, bloqueo operativo de siete días y expiración posterior sin borrado automático.
 - PostgreSQL local con migraciones, catálogo inicial de planes/categorías y restricciones críticas en la base.
-- Idempotencia para pagos y para altas HTTP de proveedores y facturas.
+- API HTTP versionada para onboarding, proveedores, facturas, pagos, grilla y
+  configuración de alertas; tenant y actor se obtienen de la identidad autorizada.
+- Idempotencia para pagos, altas HTTP y configuración de alertas; auditoría de
+  proveedores, facturas, pagos y cambios de grilla.
 - Fundación AWS de `dev` desplegada en `us-east-1`: KMS, Secrets Manager y presupuesto mensual de USD 20.
+- Stack de aplicación preparada: API Gateway REST, webhook YCloud firmado,
+  DynamoDB con outbox, SQS FIFO, workers, DLQs, alarmas y logs con retención.
+- Stack de datos preparada: VPC aislada, Aurora Serverless v2, RDS Proxy y S3
+  privado cifrado. No está desplegada.
 - Convenciones de aislamiento para `dev`, `staging` y `prod`.
 
-Todavía no hay API pública, Lambdas de negocio, Cognito, Aurora, colas, integración con YCloud/Mercado Pago ni frontend desplegados. Ése es el trabajo de las fases posteriores.
+Todavía no hay recursos de Fase B desplegados, Cognito, Mercado Pago, frontend,
+dominios nuevos ni tráfico real. El webhook existente de YCloud permanece sin
+cambios hasta la migración aprobada.
 
 ## Documentación clave
 
@@ -33,6 +44,9 @@ Todavía no hay API pública, Lambdas de negocio, Cognito, Aurora, colas, integr
 - [Modelo de dominio de Fase A](docs/MODELO_DOMINIO_FASE_A.md)
 - [Ambientes y estrategia de despliegue](docs/AMBIENTES_Y_DESPLIEGUE.md)
 - [Uso de la base de datos local](database/README.md)
+- [Contrato HTTP y webhook de Fase B](docs/API_FASE_B.md)
+- [Datos persistentes de Fase B](docs/DATOS_FASE_B.md)
+- [Operación, DLQs y backups de Fase B](docs/OPERACION_FASE_B.md)
 
 ## Requisitos locales
 
@@ -57,6 +71,8 @@ La base de desarrollo local es `cuentas_pagar_serverless`. Aplicar las migracion
 
 1. `database/migrations/001_initial_schema.sql`
 2. `database/migrations/002_http_command_idempotency.sql`
+3. `database/migrations/003_payment_batch_idempotency_fingerprint.sql`
+4. `database/migrations/004_http_command_receipts.sql`
 
 Para ejecutar la prueba de integración, se debe proporcionar la conexión sólo durante la sesión actual de PowerShell:
 
@@ -80,4 +96,7 @@ Los dominios productivos previstos son `apagar.averiqsj.app` para la web y `apag
 
 ## Próximo paso
 
-Fase B comienza por el primer vertical seguro de backend para `dev`: contrato HTTP, autenticación y autorización por tenant, infraestructura mínima de API/Lambda e implementación de endpoints de onboarding, proveedores, facturas y pagos. El detalle y los límites de ese arranque están en el [handoff de Fase A](docs/HANDOFF_FASE_A.md).
+Antes de desplegar Fase B en `dev`, revisar el costo de Aurora, RDS Proxy,
+almacenamiento, logs y endpoints privados; ajustar el presupuesto y aprobar el
+despliegue. Luego corresponde validar el flujo integrado y avanzar a la Fase C:
+suscripciones mediante Mercado Pago Checkout Pro.

@@ -75,6 +75,32 @@
     "aws:cdk:path": "CuentasPagarApplication-dev/ConversationDeadLetterQueue/Resource"
    }
   },
+  "OutboxDeadLetterQueueA11B6070": {
+   "Type": "AWS::SQS::Queue",
+   "Properties": {
+    "MessageRetentionPeriod": 1209600,
+    "SqsManagedSseEnabled": true,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/OutboxDeadLetterQueue/Resource"
+   }
+  },
   "ConversationQueue15491B6D": {
    "Type": "AWS::SQS::Queue",
    "Properties": {
@@ -113,6 +139,81 @@
    "DeletionPolicy": "Retain",
    "Metadata": {
     "aws:cdk:path": "CuentasPagarApplication-dev/ConversationQueue/Resource"
+   }
+  },
+  "WebhookIngressLogGroup164E8BDA": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 30,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/WebhookIngressLogGroup/Resource"
+   }
+  },
+  "OutboxRelayLogGroup86288DD6": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 30,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/OutboxRelayLogGroup/Resource"
+   }
+  },
+  "ConversationWorkerLogGroup099C8CF4": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 30,
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/ConversationWorkerLogGroup/Resource"
    }
   },
   "YCloudWebhookIngressServiceRoleCA64312C": {
@@ -221,7 +322,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
      },
-     "S3Key": "77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748.zip"
+     "S3Key": "f045f694f0dd4d504ee546a1d76a9dcb7a371fad083e91a97ec692a8216782fb.zip"
     },
     "Environment": {
      "Variables": {
@@ -234,6 +335,11 @@
      }
     },
     "Handler": "ycloud-webhook-handler.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "WebhookIngressLogGroup164E8BDA"
+     }
+    },
     "MemorySize": 256,
     "Role": {
      "Fn::GetAtt": [
@@ -264,7 +370,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "CuentasPagarApplication-dev/YCloudWebhookIngress/Resource",
-    "aws:asset:path": "asset.77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748",
+    "aws:asset:path": "asset.f045f694f0dd4d504ee546a1d76a9dcb7a371fad083e91a97ec692a8216782fb",
     "aws:asset:is-bundled": false,
     "aws:asset:property": "Code"
    }
@@ -354,6 +460,20 @@
          "Arn"
         ]
        }
+      },
+      {
+       "Action": [
+        "sqs:SendMessage",
+        "sqs:GetQueueAttributes",
+        "sqs:GetQueueUrl"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "OutboxDeadLetterQueueA11B6070",
+         "Arn"
+        ]
+       }
       }
      ],
      "Version": "2012-10-17"
@@ -376,7 +496,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
      },
-     "S3Key": "77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748.zip"
+     "S3Key": "f045f694f0dd4d504ee546a1d76a9dcb7a371fad083e91a97ec692a8216782fb.zip"
     },
     "Environment": {
      "Variables": {
@@ -386,6 +506,11 @@
      }
     },
     "Handler": "ycloud-outbox-relay.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "OutboxRelayLogGroup86288DD6"
+     }
+    },
     "MemorySize": 256,
     "Role": {
      "Fn::GetAtt": [
@@ -416,7 +541,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "CuentasPagarApplication-dev/YCloudOutboxRelay/Resource",
-    "aws:asset:path": "asset.77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748",
+    "aws:asset:path": "asset.f045f694f0dd4d504ee546a1d76a9dcb7a371fad083e91a97ec692a8216782fb",
     "aws:asset:is-bundled": false,
     "aws:asset:property": "Code"
    }
@@ -425,6 +550,17 @@
    "Type": "AWS::Lambda::EventSourceMapping",
    "Properties": {
     "BatchSize": 10,
+    "BisectBatchOnFunctionError": true,
+    "DestinationConfig": {
+     "OnFailure": {
+      "Destination": {
+       "Fn::GetAtt": [
+        "OutboxDeadLetterQueueA11B6070",
+        "Arn"
+       ]
+      }
+     }
+    },
     "EventSourceArn": {
      "Fn::GetAtt": [
       "InboundEvents6195D20A",
@@ -545,9 +681,14 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
      },
-     "S3Key": "77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748.zip"
+     "S3Key": "f045f694f0dd4d504ee546a1d76a9dcb7a371fad083e91a97ec692a8216782fb.zip"
     },
     "Handler": "conversation-worker.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ConversationWorkerLogGroup099C8CF4"
+     }
+    },
     "MemorySize": 256,
     "Role": {
      "Fn::GetAtt": [
@@ -578,7 +719,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "CuentasPagarApplication-dev/ConversationWorker/Resource",
-    "aws:asset:path": "asset.77b89681d1c38ab655074449a96350a9ad27ef7898889f74b2b3b558db43f748",
+    "aws:asset:path": "asset.f045f694f0dd4d504ee546a1d76a9dcb7a371fad083e91a97ec692a8216782fb",
     "aws:asset:is-bundled": false,
     "aws:asset:property": "Code"
    }
@@ -616,6 +757,172 @@
    },
    "Metadata": {
     "aws:cdk:path": "CuentasPagarApplication-dev/ConversationWorkerMapping/Resource"
+   }
+  },
+  "ConversationDlqMessagesAlarmEFEF568A": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "La DLQ conversacional contiene mensajes para revisar o reprocesar.",
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "DatapointsToAlarm": 1,
+    "Dimensions": [
+     {
+      "Name": "QueueName",
+      "Value": {
+       "Fn::GetAtt": [
+        "ConversationDeadLetterQueueA52E6CD4",
+        "QueueName"
+       ]
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "ApproximateNumberOfMessagesVisible",
+    "Namespace": "AWS/SQS",
+    "Period": 300,
+    "Statistic": "Maximum",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "Threshold": 1,
+    "TreatMissingData": "notBreaching"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/ConversationDlqMessagesAlarm/Resource"
+   }
+  },
+  "OutboxDlqMessagesAlarm03C3FDA3": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "El relay outbox descartó eventos que requieren replay controlado.",
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "DatapointsToAlarm": 1,
+    "Dimensions": [
+     {
+      "Name": "QueueName",
+      "Value": {
+       "Fn::GetAtt": [
+        "OutboxDeadLetterQueueA11B6070",
+        "QueueName"
+       ]
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "ApproximateNumberOfMessagesVisible",
+    "Namespace": "AWS/SQS",
+    "Period": 300,
+    "Statistic": "Maximum",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "Threshold": 1,
+    "TreatMissingData": "notBreaching"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/OutboxDlqMessagesAlarm/Resource"
+   }
+  },
+  "WebhookIngressErrorsAlarm7DCB62E9": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "El ingreso de webhooks YCloud tuvo errores de ejecución.",
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "DatapointsToAlarm": 1,
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "YCloudWebhookIngress9024EBF2"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "Threshold": 1,
+    "TreatMissingData": "notBreaching"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/WebhookIngressErrorsAlarm/Resource"
+   }
+  },
+  "OutboxIteratorAgeAlarm87D63F9A": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "El relay outbox acumula más de cinco minutos de retraso en DynamoDB Streams.",
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "DatapointsToAlarm": 1,
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "YCloudOutboxRelay7588D511"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "IteratorAge",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Maximum",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "cuentas-pagar"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "Threshold": 300000,
+    "TreatMissingData": "notBreaching"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CuentasPagarApplication-dev/OutboxIteratorAgeAlarm/Resource"
    }
   },
   "PublicApiC8293BC5": {
@@ -933,7 +1240,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/22RT0/DMAzFPwv31MCGkDh2/LlNjJb75KZmZG2TMjubqijfHSUdjAOn9/Oz9ewoC1jcP8DNFZ640G1X9KaBUAvqTuGJt6GdLA6ubSC8Y9OTevywGaLiL4bw5slnM0NUPQ5NixBevNVinE2tX34+kpXa+YOmNY6jsbvU/t/d0GEwzMbZqAwOECo3b8+6cb3RU57LFBUvt8hMwlAmUbyEldcdyQqZFI5mh0InnCBUxFKOJmddsNTaeSvqicbeTQNZSe6fqhbc5QNmqIjzyTn+pzhnzrwm+XRtsmaK8TKXb0xB59e+ehm9RGVdS7Dn6+PiDm7Tt+zZmOLgrZiBoJr1G241BRizAQAA"
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/22RTU/DMAyGfwv3zMCGkDh2fF2YGB33yU1Nly1NSp2sqqL8d5R0Yxw4vY9fO7aTzGF+/wA3VzjwTNaHmVYVhI1DeRA48DbUo8HW1hWET6w0iccvkyEK/mYIH558NjNEoW3DEN5s89pb36XEmaPQ2FY1QnjxRjplTcr+8vORjNtY30taYdcp06T0/+6a+lYxK2uiUNhCKO20Wda11UqOuS5TFLzYIjM5hiKJ4AUsvTyQWyKTkNr6ekAndxAKjX2bjmaIAjvVoKMBRwglsSs6ledcsJDSeuPEE3Xaji0Zl9w/0cZhk5eboCTO18mjz8Gp58QrcjtbJ2uiGC91ef/U6PQS79513kVhbE2w5+vj/A5u03fuWalZ741TLUE56Q8xE2S36wEAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "CuentasPagarApplication-dev/CDKMetadata/Default"

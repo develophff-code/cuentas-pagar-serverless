@@ -50,7 +50,7 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:136:9)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:192:9)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -64,7 +64,7 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:140:9)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:196:9)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -105,7 +105,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Table2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:50:31)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:52:31)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -120,7 +120,22 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Queue2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:58:33)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:60:33)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/OutboxDeadLetterQueue/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "OutboxDeadLetterQueueA11B6070"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:67:27)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -135,7 +150,52 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Queue2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:65:35)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:72:35)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/WebhookIngressLogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebhookIngressLogGroup164E8BDA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new LogGroup2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:83:40)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/OutboxRelayLogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "OutboxRelayLogGroup86288DD6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new LogGroup2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:87:37)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/ConversationWorkerLogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConversationWorkerLogGroup099C8CF4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new LogGroup2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:91:44)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -150,7 +210,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Function2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:76:32)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:95:32)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -165,7 +225,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Function2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:92:29)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:112:29)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -180,7 +240,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new EventSourceMapping2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:102:9)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:123:9)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -195,7 +255,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Function2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:109:36)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:137:36)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -210,7 +270,67 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new EventSourceMapping2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:117:9)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:146:9)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/ConversationDlqMessagesAlarm/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConversationDlqMessagesAlarmEFEF568A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...Metric.createAlarm in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:161:103)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/OutboxDlqMessagesAlarm/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "OutboxDlqMessagesAlarm03C3FDA3"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...Metric.createAlarm in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:165:97)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/WebhookIngressErrorsAlarm/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebhookIngressErrorsAlarm7DCB62E9"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...Metric.createAlarm in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:169:74)",
+        "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/CuentasPagarApplication-dev/OutboxIteratorAgeAlarm/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "OutboxIteratorAgeAlarm87D63F9A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Alarm2 in aws-cdk-lib...",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:173:9)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -225,7 +345,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new RestApi2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:183:21)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -240,7 +360,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new RestApi2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:183:21)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -255,7 +375,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new RestApi2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:183:21)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -283,7 +403,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Function2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:76:32)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:95:32)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -298,7 +418,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Function2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:92:29)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:112:29)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -313,7 +433,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Function2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:109:36)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:137:36)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -328,7 +448,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new RestApi2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:183:21)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -343,7 +463,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new RestApi2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:183:21)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -358,7 +478,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new RestApi2 in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:127:21)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:183:21)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -386,7 +506,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...WrappedClass.grantStreamRead in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:100:23)"
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:121:23)"
       ]
     }
   ],
@@ -412,7 +532,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...RootResource.addResource in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:132:34)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:188:34)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -427,7 +547,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...WrappedClass.addResource in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:132:53)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:188:53)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -442,7 +562,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...WrappedClass.addResource in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:132:76)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:188:76)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -457,7 +577,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...WrappedClass.addMethod in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:133:17)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:189:17)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -472,7 +592,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...WrappedClass.addMethod in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:133:17)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:189:17)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]
@@ -487,7 +607,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...WrappedClass.addMethod in aws-cdk-lib...",
-        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:133:17)",
+        "new ApplicationStack (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\lib\\application-stack.js:189:17)",
         "<anonymous> (C:\\Users\\Horacio\\OneDrive\\Documents\\ChatGPT\\Ctas a Pagar Serverless\\dist\\infra\\bin\\app.js:52:1)",
         "...node internals..."
       ]

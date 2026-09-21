@@ -1,7 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import type * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
@@ -38,6 +40,11 @@ export class ApplicationStack extends cdk.Stack {
       retentionPeriod: cdk.Duration.days(14),
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
+    const outboxDlq = new sqs.Queue(this, 'OutboxDeadLetterQueue', {
+      encryption: sqs.QueueEncryption.SQS_MANAGED,
+      retentionPeriod: cdk.Duration.days(14),
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
     const conversationQueue = new sqs.Queue(this, 'ConversationQueue', {
       fifo: true,
       contentBasedDeduplication: false,
@@ -49,6 +56,18 @@ export class ApplicationStack extends cdk.Stack {
       deadLetterQueue: { queue: conversationDlq, maxReceiveCount: 5 },
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
+    const webhookIngressLogGroup = new logs.LogGroup(this, 'WebhookIngressLogGroup', {
+      retention: logs.RetentionDays.ONE_MONTH,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    const outboxRelayLogGroup = new logs.LogGroup(this, 'OutboxRelayLogGroup', {
+      retention: logs.RetentionDays.ONE_MONTH,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    const conversationWorkerLogGroup = new logs.LogGroup(this, 'ConversationWorkerLogGroup', {
+      retention: logs.RetentionDays.ONE_MONTH,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
 
     const webhookIngress = new lambda.Function(this, 'YCloudWebhookIngress', {
       runtime: lambda.Runtime.NODEJS_22_X,
@@ -56,6 +75,7 @@ export class ApplicationStack extends cdk.Stack {
       handler: 'ycloud-webhook-handler.handler',
       timeout: cdk.Duration.seconds(6),
       memorySize: 256,
+      logGroup: webhookIngressLogGroup as unknown as logs.ILogGroupRef,
       environment: {
         INBOUND_EVENTS_TABLE_NAME: inboundEvents.tableName,
         RUNTIME_CONFIG_SECRET_ARN: props.runtimeConfig.secretArn,
@@ -73,6 +93,7 @@ export class ApplicationStack extends cdk.Stack {
       handler: 'ycloud-outbox-relay.handler',
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
+      logGroup: outboxRelayLogGroup as unknown as logs.ILogGroupRef,
       environment: { CONVERSATION_QUEUE_URL: conversationQueue.queueUrl },
     });
     inboundEvents.grantStreamRead(outboxRelay);
@@ -83,6 +104,13 @@ export class ApplicationStack extends cdk.Stack {
       startingPosition: lambda.StartingPosition.TRIM_HORIZON,
       batchSize: 10,
       retryAttempts: 5,
+      bisectBatchOnError: true,
+      onFailure: {
+        bind: (_mapping, target) => {
+          outboxDlq.grantSendMessages(target);
+          return { destination: outboxDlq.queueArn };
+        },
+      },
     });
 
     const conversationWorker = new lambda.Function(this, 'ConversationWorker', {
@@ -91,6 +119,7 @@ export class ApplicationStack extends cdk.Stack {
       handler: 'conversation-worker.handler',
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
+      logGroup: conversationWorkerLogGroup as unknown as logs.ILogGroupRef,
     });
     conversationQueue.grantConsumeMessages(conversationWorker);
     new lambda.EventSourceMapping(this, 'ConversationWorkerMapping', {
@@ -103,6 +132,34 @@ export class ApplicationStack extends cdk.Stack {
       actions: ['kms:Decrypt'],
       resources: [props.runtimeConfigEncryptionKeyArn],
     }));
+
+    const alarmDefaults = {
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    };
+    conversationDlq.metricApproximateNumberOfMessagesVisible({ period: cdk.Duration.minutes(5) }).createAlarm(this, 'ConversationDlqMessagesAlarm', {
+      ...alarmDefaults, threshold: 1, comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      alarmDescription: 'La DLQ conversacional contiene mensajes para revisar o reprocesar.',
+    });
+    outboxDlq.metricApproximateNumberOfMessagesVisible({ period: cdk.Duration.minutes(5) }).createAlarm(this, 'OutboxDlqMessagesAlarm', {
+      ...alarmDefaults, threshold: 1, comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      alarmDescription: 'El relay outbox descartó eventos que requieren replay controlado.',
+    });
+    webhookIngress.metricErrors({ period: cdk.Duration.minutes(5) }).createAlarm(this, 'WebhookIngressErrorsAlarm', {
+      ...alarmDefaults, threshold: 1, comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      alarmDescription: 'El ingreso de webhooks YCloud tuvo errores de ejecución.',
+    });
+    new cloudwatch.Alarm(this, 'OutboxIteratorAgeAlarm', {
+      metric: new cloudwatch.Metric({
+        namespace: 'AWS/Lambda', metricName: 'IteratorAge', statistic: 'Maximum', period: cdk.Duration.minutes(5),
+        dimensionsMap: { FunctionName: outboxRelay.functionName },
+      }),
+      ...alarmDefaults,
+      threshold: 300_000,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      alarmDescription: 'El relay outbox acumula más de cinco minutos de retraso en DynamoDB Streams.',
+    });
 
     const api = new apigateway.RestApi(this, 'PublicApi', {
       restApiName: `cuentas-pagar-${props.stage}`,
