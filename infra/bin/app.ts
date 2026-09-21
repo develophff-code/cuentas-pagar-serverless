@@ -2,6 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { FoundationStack } from '../lib/foundation-stack.js';
 import { ApplicationStack } from '../lib/application-stack.js';
+import { DataStack } from '../lib/data-stack.js';
 import { parseDeploymentStage, TARGET_REGION } from '../lib/environment.js';
 
 const app = new cdk.App();
@@ -24,3 +25,5 @@ new ApplicationStack(app, `CuentasPagarApplication-${stage}`, {
   runtimeConfig: foundation.runtimeConfig,
   runtimeConfigEncryptionKeyArn: foundation.encryptionKeyArn,
 });
+
+new DataStack(app, `CuentasPagarData-${stage}`, { stage, env: environment });
