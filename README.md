@@ -16,7 +16,8 @@ La solución permite administrar proveedores, comprobantes, facturas y pagos com
 
 La **Fase A está cerrada** y la implementación de la **Fase B está completa en
 código y sintetizada**, pendiente de aprobación de costos y despliegue en
-`dev`. El repositorio cuenta con:
+`dev`. La **Fase C comenzó** con el contrato seguro de Mercado Pago, todavía
+sin credenciales, URL pública ni tráfico real. El repositorio cuenta con:
 
 - Modelo de dominio y reglas para tenants, planes, membresías, proveedores, facturas y pagos.
 - Reglas de autorización: el administrador confirma pagos propuestos por `OPERATOR_PAYMENTS`; `OPERATOR_UPLOAD` no puede confirmar facturas ni pagos.
@@ -32,6 +33,8 @@ código y sintetizada**, pendiente de aprobación de costos y despliegue en
 - Stack de datos preparada: VPC aislada, Aurora Serverless v2, RDS Proxy y S3
   privado cifrado. No está desplegada.
 - Convenciones de aislamiento para `dev`, `staging` y `prod`.
+- Cliente server-side de Checkout Pro y validación HMAC de webhooks de Mercado
+  Pago, con pruebas unitarias y sin secretos versionados.
 
 Todavía no hay recursos de Fase B desplegados, Cognito, Mercado Pago, frontend,
 dominios nuevos ni tráfico real. El webhook existente de YCloud permanece sin
@@ -47,6 +50,7 @@ cambios hasta la migración aprobada.
 - [Contrato HTTP y webhook de Fase B](docs/API_FASE_B.md)
 - [Datos persistentes de Fase B](docs/DATOS_FASE_B.md)
 - [Operación, DLQs y backups de Fase B](docs/OPERACION_FASE_B.md)
+- [Integración segura de Mercado Pago — Fase C](docs/MERCADO_PAGO_FASE_C.md)
 
 ## Requisitos locales
 
@@ -98,5 +102,6 @@ Los dominios productivos previstos son `apagar.averiqsj.app` para la web y `apag
 
 Antes de desplegar Fase B en `dev`, revisar el costo de Aurora, RDS Proxy,
 almacenamiento, logs y endpoints privados; ajustar el presupuesto y aprobar el
-despliegue. Luego corresponde validar el flujo integrado y avanzar a la Fase C:
-suscripciones mediante Mercado Pago Checkout Pro.
+despliegue. Para completar Fase C faltan las órdenes locales de suscripción, el
+webhook idempotente, la configuración de URLs públicas y las pruebas con
+credenciales de prueba de Mercado Pago.
