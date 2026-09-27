@@ -7,6 +7,11 @@ function dependencies(): ApiDependencies {
   return {
     registerWebTenant: async () => ({ tenantId: 'tenant-1', adminUserId: 'user-1' }),
     authorizeOperational: async (_sub, tenantId) => ({ tenantId, userId: 'user-1', role: 'ADMIN' }),
+    authorizeBilling: async (_sub, tenantId) => ({ tenantId, userId: 'user-1', role: 'ADMIN' }),
+    createSubscriptionCheckout: async () => ({
+      orderId: 'subscription-order-1', checkoutUrl: 'https://checkout.example/preference-1',
+      expiresAt: new Date('2026-10-01T00:00:00.000Z'), idempotent: false,
+    }),
     createSupplier: async () => ({ id: 'supplier-1', idempotent: false }),
     createInvoice: async () => ({ id: 'invoice-1', status: 'IN_GRID', idempotent: false }),
     createPaymentBatch: async () => ({ batchId: 'batch-1', status: 'RECORDED', totalInCents: 1250n, idempotent: false }),
@@ -114,4 +119,25 @@ test('configura alertas de grilla como comando idempotente de ADMIN', async () =
   const response = await createHttpHandler(fake)(request);
   assert.equal(response.statusCode, 201);
   assert.equal(capturedKey, 'request-1');
+});
+
+test('crea una orden de suscripción con el plan, actor e idempotencia controlados por servidor', async () => {
+  let receivedPlan: string | undefined;
+  let receivedKey: string | undefined;
+  const fake = dependencies();
+  fake.createSubscriptionCheckout = async (_actor, planCode, idempotencyKey) => {
+    receivedPlan = planCode;
+    receivedKey = idempotencyKey;
+    return {
+      orderId: 'subscription-order-1', checkoutUrl: 'https://checkout.example/preference-1',
+      expiresAt: new Date('2026-10-01T00:00:00.000Z'), idempotent: false,
+    };
+  };
+  const response = await createHttpHandler(fake)(operationalRequest('/v1/tenants/tenant-1/subscription-orders', {
+    planCode: 'PROFESSIONAL', amount: 1,
+  }));
+  assert.equal(response.statusCode, 201);
+  assert.equal(receivedPlan, 'PROFESSIONAL');
+  assert.equal(receivedKey, 'request-1');
+  assert.equal(JSON.parse(response.body).checkoutUrl, 'https://checkout.example/preference-1');
 });

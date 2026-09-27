@@ -9,7 +9,9 @@
 - Precios iniciales mensuales: Básico ARS 28.000, Profesional ARS 82.000 y Ultra ARS 144.000.
 - Desde el día cinco se envían avisos de finalización de prueba.
 - Al terminar la prueba, el tenant queda bloqueado para operatoria durante siete días, pero puede acceder a facturación y renovación.
-- Transcurridos esos siete días de bloqueo, se revoca todo acceso y una nueva utilización requiere registro nuevo. No se borra información automáticamente hasta definir la política legal de retención.
+- Cada renovación mensual vence al finalizar su período contratado. Desde allí hay 48 horas de gracia con operatoria completa; luego hay siete días de bloqueo operativo con acceso exclusivo a renovación. Durante el bloqueo se calcula interés resarcitorio simple diario.
+- Luego del bloqueo la suscripción queda expirada y sus datos se conservan durante 90 días para una reactivación. Pasado ese plazo se programa la eliminación de los datos operativos, sujeta a validar los deberes de conservación legal con asesoramiento profesional.
+- La reactivación antes de la eliminación cobra el precio vigente del plan, más interés y recargo de conservación calculados sobre la última cuota. La tasa mensual se administra como dato editable y versionado; inicialmente es 2,75 % mensual como referencia de la tasa resarcitoria de ARCA.
 - `OPERATOR_PAYMENTS` puede proponer o cargar un pago; sólo `ADMIN` lo confirma. Un pago iniciado y confirmado por `ADMIN` no requiere otra aprobación.
 - La región objetivo inicial es `us-east-1` (Norte de Virginia).
 - La cuenta AWS actualmente configurada por SSO se usa exclusivamente como `dev`; `staging` y `prod` requerirán cuentas independientes antes de recibir datos o tráfico real.
@@ -36,7 +38,7 @@
 
 - Límite de almacenamiento y de consultas IA de Ultra.
 - Frecuencia, texto y canales exactos de los avisos desde el día cinco de prueba.
-- Política definitiva de conservación, exportación o eliminación de datos luego de `ACCESS_EXPIRED`, sujeta a asesoramiento legal.
+- Alcance legal definitivo de los registros que podrían requerir conservación luego de la eliminación de datos operativos.
 
 ## Decisión técnica derivada
 

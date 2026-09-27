@@ -121,6 +121,16 @@ model invoice_drafts {
   invoices                                                                invoices?
 }
 
+/// Tasa mensual editable para interés resarcitorio y conservación de datos.
+model late_fee_rate_versions {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  monthly_rate Decimal  @db.Decimal(9, 6)
+  valid_from   DateTime @db.Timestamptz(6)
+  valid_to     DateTime? @db.Timestamptz(6)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model invoices {
   id                                                                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -344,6 +354,8 @@ model subscription_orders {
   expires_at             DateTime?                 @db.Timestamptz(6)
   paid_at                DateTime?                 @db.Timestamptz(6)
   created_by_user_id     String?                   @db.Uuid
+  idempotency_key        String?
+  idempotency_fingerprint String?                  @db.Char(64)
   created_at             DateTime                  @default(now()) @db.Timestamptz(6)
   updated_at             DateTime                  @default(now()) @db.Timestamptz(6)
   application_users      application_users?        @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -353,6 +365,7 @@ model subscription_orders {
   subscriptions          subscriptions[]
 
   @@index([tenant_id, status], map: "subscription_orders_tenant_status_idx")
+  @@unique([tenant_id, idempotency_key], map: "subscription_orders_tenant_idempotency_key", where: raw("(idempotency_key IS NOT NULL)"))
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -441,6 +454,7 @@ model tenants {
   trial_ends_at           DateTime                  @db.Timestamptz(6)
   blocked_until           DateTime?                 @db.Timestamptz(6)
   access_expires_at       DateTime?                 @db.Timestamptz(6)
+  data_purge_at           DateTime?                 @db.Timestamptz(6)
   current_plan_code       plan_code?
   created_at              DateTime                  @default(now()) @db.Timestamptz(6)
   updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
@@ -463,6 +477,7 @@ model tenants {
   whatsapp_identities     whatsapp_identities[]
 
   @@index([access_status])
+  @@index([data_purge_at], map: "tenants_data_purge_at_idx", where: raw("(data_purge_at IS NOT NULL)"))
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.

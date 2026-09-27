@@ -17,9 +17,9 @@ function headerParts(value: string | undefined): Map<string, string> {
  * sólo identifica un recurso: su estado final siempre se consulta a la API.
  */
 export function verifyMercadoPagoWebhookSignature(input: {
-  xSignature?: string;
-  xRequestId?: string;
-  dataId?: string;
+  xSignature?: string | undefined;
+  xRequestId?: string | undefined;
+  dataId?: string | undefined;
   secret: string;
 }): boolean {
   if (!input.secret || !input.xRequestId || !input.dataId) return false;

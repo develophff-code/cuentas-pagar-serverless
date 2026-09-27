@@ -36,6 +36,12 @@ esta etapa.
   `x-request-id` mediante HMAC-SHA256. El webhook no confiará en su payload para
   acreditar una orden: consultará el pago a Mercado Pago y cotejará estado,
   referencia, moneda e importe con la orden local.
+- `POST /v1/tenants/{tenantId}/subscription-orders` exige JWT, rol `ADMIN` y
+  `Idempotency-Key`. El navegador sólo envía el plan: el precio vigente se lee
+  desde la base, se congela en `subscription_orders` y se crea la preferencia.
+- La migración `005_subscription_checkout_idempotency.sql` protege tanto el
+  reintento de una orden como que una orden acreditada genere más de una
+  suscripción.
 
 ## Datos que faltan antes de activar el flujo real
 
@@ -50,3 +56,32 @@ esta etapa.
 La redirección del usuario es sólo de experiencia de usuario: la activación de
 la suscripción dependerá del webhook autenticado y de la consulta servidor a
 servidor del pago.
+
+## Renovación vencida y retención
+
+- Tras el vencimiento mensual hay **48 horas de gracia** con operatoria
+  completa y sin intereses.
+- Luego hay **7 días de bloqueo**: se conserva acceso a renovación y se calcula
+  interés simple diario sobre la última cuota, con una tasa mensual editable y
+  versionada.
+- Al terminar el bloqueo el tenant queda `ACCESS_EXPIRED`; sus datos operativos
+  se retienen 90 días. La reactivación suma el precio vigente del plan, el
+  interés histórico y un recargo de conservación calculado sobre la última
+  cuota. Luego se programa el borrado, condicionado a los requisitos legales de
+  conservación que confirme el asesoramiento profesional.
+
+## Dominios y certificados
+
+Los dominios nuevos no deben apuntarse a una IP de EC2 para este backend
+serverless. Cuando se publiquen los recursos, la configuración será:
+
+- `apagar.averiqsj.app`: CNAME hacia la distribución de CloudFront que sirva la
+  aplicación web, con certificado ACM administrado por AWS.
+- `apagar.averiqsj.com`: dominio personalizado regional de API Gateway para
+  `POST /api/webhook/ycloud` y el próximo `POST /api/webhook/mercado-pago`,
+  también con certificado ACM en `us-east-1`.
+
+Certbot y la IP de EC2 sólo corresponden al servicio legado que hoy atiende
+`averiq.cloud`; no se modifica ni se redirige hasta validar el reemplazo en
+AWS. ACM se valida con los CNAME que entregue AWS y renueva los certificados
+automáticamente.

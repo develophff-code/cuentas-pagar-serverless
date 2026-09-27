@@ -24,6 +24,17 @@ export interface ApiDependencies {
     tenantId: string,
     allowedRoles: readonly MembershipRole[],
   ): Promise<AuthenticatedActor>;
+  authorizeBilling(
+    cognitoSub: string,
+    tenantId: string,
+    allowedRoles: readonly MembershipRole[],
+  ): Promise<AuthenticatedActor>;
+  createSubscriptionCheckout(actor: AuthenticatedActor, planCode: Exclude<PlanCode, 'BASIC'>, idempotencyKey: string): Promise<{
+    orderId: string;
+    checkoutUrl: string;
+    expiresAt: Date;
+    idempotent: boolean;
+  }>;
   createSupplier(input: {
     businessName: string;
     mobilePhone: string;
@@ -187,6 +198,19 @@ export function createHttpHandler(dependencies: ApiDependencies) {
       }
 
       const idempotencyKey = requiredIdempotencyKey(request);
+
+      if (request.httpMethod === 'POST' && request.path.endsWith('/subscription-orders')) {
+        const actor = await dependencies.authorizeBilling(identity.sub, requestTenantId, ['ADMIN']);
+        const planCode = stringValue(payload, 'planCode', true);
+        if (planCode !== 'PROFESSIONAL' && planCode !== 'ULTRA') {
+          throw new DomainRuleViolation('La renovación web sólo admite los planes PROFESSIONAL o ULTRA.');
+        }
+        const result = await dependencies.createSubscriptionCheckout(actor, planCode, idempotencyKey);
+        return response(result.idempotent ? 200 : 201, {
+          ...result,
+          expiresAt: result.expiresAt.toISOString(),
+        });
+      }
 
       if (request.httpMethod === 'PUT' && request.path.endsWith('/payment-grid/configuration')) {
         const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN']);

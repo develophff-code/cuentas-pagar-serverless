@@ -77,6 +77,8 @@ La base de desarrollo local es `cuentas_pagar_serverless`. Aplicar las migracion
 2. `database/migrations/002_http_command_idempotency.sql`
 3. `database/migrations/003_payment_batch_idempotency_fingerprint.sql`
 4. `database/migrations/004_http_command_receipts.sql`
+5. `database/migrations/005_subscription_checkout_idempotency.sql`
+6. `database/migrations/006_subscription_lifecycle_policy.sql`
 
 Para ejecutar la prueba de integración, se debe proporcionar la conexión sólo durante la sesión actual de PowerShell:
 
@@ -96,12 +98,16 @@ La cuenta AWS actual se usa exclusivamente como `dev` y está en `us-east-1`. `s
 - La rama `main` se promueve primero a `staging` y luego a `prod` usando el mismo artefacto validado.
 - Antes de cualquier despliegue se revisan identidad AWS, `cdk diff`, costos e impacto externo.
 
-Los dominios productivos previstos son `apagar.averiqsj.app` para la web y `apagar.averiqsj.com` para el webhook de YCloud. No deben configurarse aún: no son necesarios para iniciar Fase B.
+Los dominios productivos previstos son `apagar.averiqsj.app` para la web y
+`apagar.averiqsj.com` para los webhooks. No se apuntan a una IP de EC2: al
+publicarlos usarán CloudFront y API Gateway con certificados ACM. El servicio
+legado de `averiq.cloud` conserva su configuración actual hasta la migración
+validada.
 
 ## Próximo paso
 
 Antes de desplegar Fase B en `dev`, revisar el costo de Aurora, RDS Proxy,
 almacenamiento, logs y endpoints privados; ajustar el presupuesto y aprobar el
-despliegue. Para completar Fase C faltan las órdenes locales de suscripción, el
-webhook idempotente, la configuración de URLs públicas y las pruebas con
-credenciales de prueba de Mercado Pago.
+despliegue. Para completar Fase C faltan publicar el webhook idempotente, la
+configuración de URLs públicas y las pruebas con credenciales de prueba de
+Mercado Pago.
