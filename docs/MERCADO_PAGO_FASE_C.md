@@ -70,6 +70,13 @@ servidor del pago.
   cuota. Luego se programa el borrado, condicionado a los requisitos legales de
   conservación que confirme el asesoramiento profesional.
 
+La reconciliación de estados está aislada en `TenantLifecycleService` y su
+entrada diaria es `src/jobs/subscription-lifecycle-job.ts`. Antes de desplegarla
+se conectará a un scheduler administrado y se configurará la observabilidad.
+El mismo job crea de forma idempotente una intención de recordatorio cinco días
+antes y una intención con el enlace de Checkout al vencimiento. Aún no envía
+WhatsApp ni correo: un dispatcher de canales consumirá `notification_intents`.
+
 ## Dominios y certificados
 
 Los dominios nuevos no deben apuntarse a una IP de EC2 para este backend
