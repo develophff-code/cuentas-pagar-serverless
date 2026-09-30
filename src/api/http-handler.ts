@@ -29,6 +29,11 @@ export interface ApiDependencies {
     tenantId: string,
     allowedRoles: readonly MembershipRole[],
   ): Promise<AuthenticatedActor>;
+  authorizeSubscriptionRenewal(
+    cognitoSub: string,
+    tenantId: string,
+    allowedRoles: readonly MembershipRole[],
+  ): Promise<AuthenticatedActor>;
   createSubscriptionCheckout(actor: AuthenticatedActor, planCode: Exclude<PlanCode, 'BASIC'>, idempotencyKey: string): Promise<{
     orderId: string;
     checkoutUrl: string;
@@ -200,7 +205,7 @@ export function createHttpHandler(dependencies: ApiDependencies) {
       const idempotencyKey = requiredIdempotencyKey(request);
 
       if (request.httpMethod === 'POST' && request.path.endsWith('/subscription-orders')) {
-        const actor = await dependencies.authorizeBilling(identity.sub, requestTenantId, ['ADMIN']);
+        const actor = await dependencies.authorizeSubscriptionRenewal(identity.sub, requestTenantId, ['ADMIN']);
         const planCode = stringValue(payload, 'planCode', true);
         if (planCode !== 'PROFESSIONAL' && planCode !== 'ULTRA') {
           throw new DomainRuleViolation('La renovación web sólo admite los planes PROFESSIONAL o ULTRA.');

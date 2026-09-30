@@ -8,6 +8,7 @@ function dependencies(): ApiDependencies {
     registerWebTenant: async () => ({ tenantId: 'tenant-1', adminUserId: 'user-1' }),
     authorizeOperational: async (_sub, tenantId) => ({ tenantId, userId: 'user-1', role: 'ADMIN' }),
     authorizeBilling: async (_sub, tenantId) => ({ tenantId, userId: 'user-1', role: 'ADMIN' }),
+    authorizeSubscriptionRenewal: async (_sub, tenantId) => ({ tenantId, userId: 'user-1', role: 'ADMIN' }),
     createSubscriptionCheckout: async () => ({
       orderId: 'subscription-order-1', checkoutUrl: 'https://checkout.example/preference-1',
       expiresAt: new Date('2026-10-01T00:00:00.000Z'), idempotent: false,

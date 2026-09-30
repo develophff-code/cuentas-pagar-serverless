@@ -69,6 +69,10 @@ servidor del pago.
   interés histórico y un recargo de conservación calculado sobre la última
   cuota. Luego se programa el borrado, condicionado a los requisitos legales de
   conservación que confirme el asesoramiento profesional.
+- Durante esos 90 días, sólo el `ADMIN` puede crear la orden de re-suscripción.
+  Esa excepción no concede acceso operativo ni habilita otras acciones de
+  facturación; el tenant vuelve a activarse únicamente al conciliar un pago
+  aprobado.
 
 La reconciliación de estados está aislada en `TenantLifecycleService` y su
 entrada diaria es `src/jobs/subscription-lifecycle-job.ts`. Antes de desplegarla

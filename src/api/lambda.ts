@@ -28,6 +28,8 @@ const handle = createHttpHandler({
     authorization.authorizeOperational(cognitoSub, tenantId, allowedRoles),
   authorizeBilling: (cognitoSub, tenantId, allowedRoles) =>
     authorization.authorizeBilling(cognitoSub, tenantId, allowedRoles),
+  authorizeSubscriptionRenewal: (cognitoSub, tenantId, allowedRoles) =>
+    authorization.authorizeSubscriptionRenewal(cognitoSub, tenantId, allowedRoles),
   createSubscriptionCheckout: (actor, planCode, idempotencyKey) =>
     subscriptionCheckoutService.createCheckout(actor, planCode, idempotencyKey),
   createSupplier: (input, actor, idempotencyKey) => supplierService.create(input, actor, { idempotencyKey }),

@@ -24,7 +24,7 @@ export class TenantAuthorizationService {
     allowedRoles: readonly MembershipRole[],
     now = new Date(),
   ): Promise<AuthorizedTenantActor> {
-    const actor = await this.resolveMembership(cognitoSub, tenantId, now);
+    const { actor } = await this.resolveMembership(cognitoSub, tenantId, now);
     if (!allowsOperationalAccess(actor.accessStatus)) {
       throw new DomainRuleViolation('El tenant no tiene acceso operativo. Debe renovar su suscripción.');
     }
@@ -38,7 +38,7 @@ export class TenantAuthorizationService {
     allowedRoles: readonly MembershipRole[] = ['ADMIN'],
     now = new Date(),
   ): Promise<AuthorizedTenantActor> {
-    const actor = await this.resolveMembership(cognitoSub, tenantId, now);
+    const { actor } = await this.resolveMembership(cognitoSub, tenantId, now);
     if (!allowsBillingAccess(actor.accessStatus)) {
       throw new DomainRuleViolation('El tenant ya no tiene acceso a facturación.');
     }
@@ -46,11 +46,33 @@ export class TenantAuthorizationService {
     return actor;
   }
 
+  /**
+   * La baja de acceso no impide que el ADMIN regularice durante la retención.
+   * No habilita ninguna operación del producto: sólo la creación de la orden
+   * de renovación, que volverá a activar el tenant tras la conciliación.
+   */
+  async authorizeSubscriptionRenewal(
+    cognitoSub: string,
+    tenantId: string,
+    allowedRoles: readonly MembershipRole[] = ['ADMIN'],
+    now = new Date(),
+  ): Promise<AuthorizedTenantActor> {
+    const resolved = await this.resolveMembership(cognitoSub, tenantId, now);
+    if (!allowsBillingAccess(resolved.actor.accessStatus)
+      && !(resolved.actor.accessStatus === 'ACCESS_EXPIRED'
+        && resolved.dataPurgeAt !== null
+        && now < resolved.dataPurgeAt)) {
+      throw new DomainRuleViolation('El período de retención para renovar este tenant ya finalizó.');
+    }
+    assertAuthorizedRole(resolved.actor.role, allowedRoles);
+    return resolved.actor;
+  }
+
   private async resolveMembership(
     cognitoSub: string,
     tenantId: string,
     now: Date,
-  ): Promise<AuthorizedTenantActor> {
+  ): Promise<{ actor: AuthorizedTenantActor; dataPurgeAt: Date | null }> {
     const user = await this.prisma.application_users.findUnique({
       where: { cognito_sub: cognitoSub },
       select: { id: true, is_active: true },
@@ -75,10 +97,13 @@ export class TenantAuthorizationService {
       now,
     );
     return {
-      tenantId,
-      userId: user.id,
-      role: membership.role as MembershipRole,
-      accessStatus,
+      actor: {
+        tenantId,
+        userId: user.id,
+        role: membership.role as MembershipRole,
+        accessStatus,
+      },
+      dataPurgeAt: membership.tenants.data_purge_at,
     };
   }
 
