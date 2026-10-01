@@ -24,6 +24,11 @@ es necesaria para este flujo inicial de Checkout Pro: sólo sería necesaria en
 un frontend que integre Bricks o tokenización, algo que no está contemplado en
 esta etapa.
 
+Para los avisos de WhatsApp se agregan `ycloudApiKey` y `ycloudSenderPhone` al
+mismo secreto. El emisor de `dev` es `+5492646276709`. Las plantillas Utility
+activas son `subscription_renewal_reminder`, `subscription_payment_link_v2` y
+`subscription_payment_confirmed`.
+
 ## Contrato implementado
 
 - `src/subscriptions/mercado-pago-client.ts` crea preferencias mediante
@@ -80,6 +85,10 @@ se conectará a un scheduler administrado y se configurará la observabilidad.
 El mismo job crea de forma idempotente una intención de recordatorio cinco días
 antes y una intención con el enlace de Checkout al vencimiento. Aún no envía
 WhatsApp ni correo: un dispatcher de canales consumirá `notification_intents`.
+El enlace del botón usa un token opaco de vida limitada bajo `/p/{token}`; no
+expone la URL de Mercado Pago y la respuesta de redirección no se almacena en
+caché. La ruta pública y el dispatcher se conectarán al despliegue cuando estén
+disponibles la Lambda de negocio, Aurora y el dominio `.app`.
 
 ## Dominios y certificados
 

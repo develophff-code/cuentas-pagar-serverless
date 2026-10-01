@@ -1,5 +1,6 @@
 import type { PrismaClient } from '../generated/prisma/client.js';
 import { SubscriptionCheckoutService } from './subscription-checkout-service.js';
+import { PaymentLinkTokenService } from './payment-link-token-service.js';
 
 function addDays(value: Date, days: number): Date {
   return new Date(value.getTime() + days * 24 * 60 * 60 * 1000);
@@ -7,7 +8,11 @@ function addDays(value: Date, days: number): Date {
 
 /** Registra avisos; el dispatcher de canales decide cómo y cuándo enviarlos. */
 export class SubscriptionRenewalNotificationService {
-  constructor(private readonly prisma: PrismaClient, private readonly checkout: SubscriptionCheckoutService) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly checkout: SubscriptionCheckoutService,
+    private readonly paymentLinks: PaymentLinkTokenService,
+  ) {}
 
   async schedule(now = new Date()): Promise<{ reminders: number; paymentLinks: number }> {
     const reminderFrom = addDays(now, 5);
@@ -17,10 +22,14 @@ export class SubscriptionRenewalNotificationService {
       select: { id: true, tenant_id: true, ends_at: true, plan_code: true },
     });
     for (const subscription of dueSoon) {
+      const administrator = await this.prisma.tenant_memberships.findFirst({
+        where: { tenant_id: subscription.tenant_id, role: 'ADMIN', is_active: true }, select: { id: true },
+      });
+      if (administrator === null) continue;
       await this.prisma.notification_intents.upsert({
         where: { tenant_id_idempotency_key: { tenant_id: subscription.tenant_id, idempotency_key: `SUBSCRIPTION_REMINDER:${subscription.id}` } },
         create: {
-          tenant_id: subscription.tenant_id, intent_type: 'SUBSCRIPTION_RENEWAL_REMINDER',
+          tenant_id: subscription.tenant_id, recipient_membership_id: administrator.id, intent_type: 'SUBSCRIPTION_RENEWAL_REMINDER',
           idempotency_key: `SUBSCRIPTION_REMINDER:${subscription.id}`,
           payload: { subscriptionId: subscription.id, planCode: subscription.plan_code, endsAt: subscription.ends_at.toISOString() },
           scheduled_for: now,
@@ -34,19 +43,26 @@ export class SubscriptionRenewalNotificationService {
     });
     let paymentLinks = 0;
     for (const subscription of dueNow) {
+      const intentKey = `SUBSCRIPTION_PAYMENT_LINK:${subscription.id}`;
+      const existingIntent = await this.prisma.notification_intents.findUnique({
+        where: { tenant_id_idempotency_key: { tenant_id: subscription.tenant_id, idempotency_key: intentKey } },
+        select: { id: true },
+      });
+      if (existingIntent !== null) continue;
       const administrator = await this.prisma.tenant_memberships.findFirst({
         where: { tenant_id: subscription.tenant_id, role: 'ADMIN', is_active: true }, select: { id: true, user_id: true },
       });
       if (administrator === null) continue;
       const checkout = await this.checkout.createCheckout({
         tenantId: subscription.tenant_id, userId: administrator.user_id, role: 'ADMIN',
-      }, subscription.plan_code, `SUBSCRIPTION_PAYMENT_LINK:${subscription.id}`, now);
+      }, subscription.plan_code, intentKey, now);
+      const token = await this.paymentLinks.issue(checkout.orderId, checkout.expiresAt, now);
       await this.prisma.notification_intents.upsert({
-        where: { tenant_id_idempotency_key: { tenant_id: subscription.tenant_id, idempotency_key: `SUBSCRIPTION_PAYMENT_LINK:${subscription.id}` } },
+        where: { tenant_id_idempotency_key: { tenant_id: subscription.tenant_id, idempotency_key: intentKey } },
         create: {
           tenant_id: subscription.tenant_id, recipient_membership_id: administrator.id,
-          intent_type: 'SUBSCRIPTION_PAYMENT_LINK', idempotency_key: `SUBSCRIPTION_PAYMENT_LINK:${subscription.id}`,
-          payload: { subscriptionId: subscription.id, orderId: checkout.orderId, checkoutUrl: checkout.checkoutUrl, expiresAt: checkout.expiresAt.toISOString() },
+          intent_type: 'SUBSCRIPTION_PAYMENT_LINK', idempotency_key: intentKey,
+          payload: { subscriptionId: subscription.id, orderId: checkout.orderId, paymentLinkToken: token, expiresAt: checkout.expiresAt.toISOString() },
           scheduled_for: now,
         }, update: {},
       });

@@ -81,6 +81,21 @@ export class SubscriptionPaymentReconciliationService {
           where: { id: order.tenant_id },
           data: { current_plan_code: order.plan_code, access_status: 'ACTIVE', blocked_until: null, access_expires_at: null },
         });
+        const administrator = await transaction.tenant_memberships.findFirst({
+          where: { tenant_id: order.tenant_id, role: 'ADMIN', is_active: true }, select: { id: true },
+        });
+        if (administrator !== null) {
+          await transaction.notification_intents.upsert({
+            where: { tenant_id_idempotency_key: { tenant_id: order.tenant_id, idempotency_key: `SUBSCRIPTION_PAYMENT_CONFIRMED:${order.id}` } },
+            create: {
+              tenant_id: order.tenant_id, recipient_membership_id: administrator.id,
+              intent_type: 'SUBSCRIPTION_PAYMENT_CONFIRMED',
+              idempotency_key: `SUBSCRIPTION_PAYMENT_CONFIRMED:${order.id}`,
+              payload: { orderId: order.id, planCode: order.plan_code, endsAt: endsAt.toISOString() },
+              scheduled_for: now,
+            }, update: {},
+          });
+        }
         await transaction.audit_events.create({
           data: {
             tenant_id: order.tenant_id, action: 'SUBSCRIPTION_PAYMENT_CREDITED',

@@ -71,7 +71,9 @@ export class SubscriptionCheckoutService {
     const key = normalizeIdempotencyKey(idempotencyKey);
     if (key === undefined) throw new DomainRuleViolation('La suscripción requiere una clave de idempotencia.');
     const fingerprint = fingerprintCommand({ command: 'SUBSCRIPTION_CHECKOUT_CREATED', tenantId: actor.tenantId, planCode });
-    const lifetimeHours = this.configuration.preferenceLifetimeHours ?? 24;
+    // El aviso de vencimiento concede 48 h de gracia; el enlace no puede
+    // expirar antes que ese período.
+    const lifetimeHours = this.configuration.preferenceLifetimeHours ?? 48;
     if (!Number.isInteger(lifetimeHours) || lifetimeHours < 1 || lifetimeHours > 168) {
       throw new Error('La vigencia de Checkout Pro debe estar entre 1 y 168 horas.');
     }

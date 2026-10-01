@@ -28,10 +28,10 @@ model application_users {
   payment_batches_payment_batches_proposed_by_user_idToapplication_users      payment_batches[]     @relation("payment_batches_proposed_by_user_idToapplication_users")
   payment_batches_payment_batches_reversed_by_user_idToapplication_users      payment_batches[]     @relation("payment_batches_reversed_by_user_idToapplication_users")
   subscription_orders                                                         subscription_orders[]
+  whatsapp_identities                                                         whatsapp_identities[]
   suppliers                                                                   suppliers[]
   tenant_memberships_tenant_memberships_created_by_user_idToapplication_users tenant_memberships[]  @relation("tenant_memberships_created_by_user_idToapplication_users")
   tenant_memberships_tenant_memberships_user_idToapplication_users            tenant_memberships[]  @relation("tenant_memberships_user_idToapplication_users")
-  whatsapp_identities                                                         whatsapp_identities[]
 }
 
 model audit_events {
@@ -363,9 +363,22 @@ model subscription_orders {
   plan_price_versions    plan_price_versions       @relation(fields: [price_version_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   tenants                tenants                   @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   subscriptions          subscriptions[]
+  subscription_payment_link_tokens subscription_payment_link_tokens[]
 
   @@index([tenant_id, status], map: "subscription_orders_tenant_status_idx")
   @@unique([tenant_id, idempotency_key], map: "subscription_orders_tenant_idempotency_key", where: raw("(idempotency_key IS NOT NULL)"))
+}
+
+model subscription_payment_link_tokens {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscription_order_id String              @db.Uuid
+  token_hash            String              @unique @db.Char(64)
+  expires_at            DateTime            @db.Timestamptz(6)
+  revoked_at            DateTime?           @db.Timestamptz(6)
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  subscription_orders   subscription_orders @relation(fields: [subscription_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([subscription_order_id, expires_at], map: "subscription_payment_link_tokens_active_idx")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -532,6 +545,7 @@ enum membership_role {
 
 enum outbound_message_status {
   PENDING
+  SENDING
   SENT
   DELIVERED
   READ
