@@ -9,10 +9,16 @@ import type { DeploymentStage } from './environment.js';
 
 export interface DataStackProps extends cdk.StackProps {
   stage: DeploymentStage;
+  businessEgress?: boolean;
 }
 
 /** Datos persistentes aislados. Su despliegue exige revisión explícita de costos. */
 export class DataStack extends cdk.Stack {
+  readonly vpc: ec2.IVpc;
+  readonly applicationSecurityGroup: ec2.ISecurityGroup;
+  readonly databaseSecret: secretsmanager.ISecret;
+  readonly proxyEndpoint: string;
+  readonly databaseEncryptionKeyArn: string;
   constructor(scope: Construct, id: string, props: DataStackProps) {
     super(scope, id, props);
     cdk.Tags.of(this).add('Application', 'cuentas-pagar');
@@ -26,14 +32,22 @@ export class DataStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       description: `Cifrado de datos persistentes de Cuentas a Pagar (${props.stage}).`,
     });
+    this.databaseEncryptionKeyArn = dataKey.keyArn;
 
     const vpc = new ec2.Vpc(this, 'DataVpc', {
       maxAzs: 2,
-      natGateways: 0,
-      subnetConfiguration: [{ name: 'isolated', subnetType: ec2.SubnetType.PRIVATE_ISOLATED, cidrMask: 24 }],
+      natGateways: props.businessEgress ? 1 : 0,
+      subnetConfiguration: [
+        ...(props.businessEgress ? [
+          { name: 'public', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
+          { name: 'application', subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24 },
+        ] : []),
+        { name: 'isolated', subnetType: ec2.SubnetType.PRIVATE_ISOLATED, cidrMask: 24 },
+      ],
     });
     // CDK declara opcionales de forma incompatible con exactOptionalPropertyTypes.
     const dataVpc = vpc as unknown as ec2.IVpc;
+    this.vpc = dataVpc;
     // Acceso privado y sin NAT para cargas futuras que suban documentos mediante S3.
     vpc.addGatewayEndpoint('S3GatewayEndpoint', { service: ec2.GatewayVpcEndpointAwsService.S3 });
 
@@ -70,6 +84,7 @@ export class DataStack extends cdk.Stack {
       allowAllOutbound: true,
       description: 'Reserved group for application Lambdas that access RDS Proxy.',
     });
+    this.applicationSecurityGroup = applicationSecurityGroup as unknown as ec2.ISecurityGroup;
     databaseSecurityGroup.addIngressRule(proxySecurityGroup, ec2.Port.tcp(5432), 'PostgreSQL desde RDS Proxy');
     proxySecurityGroup.addIngressRule(applicationSecurityGroup, ec2.Port.tcp(5432), 'PostgreSQL desde Lambdas de aplicación');
 
@@ -80,6 +95,7 @@ export class DataStack extends cdk.Stack {
       encryptionKey: dataKey,
     });
     const databaseSecretReference = databaseSecret as unknown as secretsmanager.ISecret;
+    this.databaseSecret = databaseSecretReference;
     const parameterGroup = new rds.ParameterGroup(this, 'PostgresParameterGroup', {
       engine: rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.VER_16_6 }),
       parameters: { 'rds.force_ssl': '1' },
@@ -112,6 +128,7 @@ export class DataStack extends cdk.Stack {
       maxConnectionsPercent: 80,
       idleClientTimeout: cdk.Duration.minutes(5),
     });
+    this.proxyEndpoint = proxy.endpoint;
 
     new cdk.CfnOutput(this, 'DocumentsBucketName', { value: documents.bucketName });
     new cdk.CfnOutput(this, 'DatabaseCredentialsSecretArn', { value: databaseSecret.secretArn });

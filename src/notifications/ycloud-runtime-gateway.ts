@@ -16,7 +16,7 @@ async function loadRuntimeConfig(): Promise<{ apiKey: string; senderPhone: strin
       throw new Error('ycloudApiKey o ycloudSenderPhone no están configurados correctamente.');
     }
     return { apiKey: config.ycloudApiKey, senderPhone: config.ycloudSenderPhone };
-  })();
+  })().catch(() => { runtimeConfig = undefined; throw new Error('YCLOUD_RUNTIME_UNAVAILABLE'); });
   return runtimeConfig;
 }
 

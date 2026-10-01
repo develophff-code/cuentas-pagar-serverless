@@ -49,6 +49,7 @@ export function createMercadoPagoWebhookHandler(dependencies: MercadoPagoWebhook
     const payload = parsePayload(rawBody);
     const dataId = request.queryStringParameters?.['data.id'] ?? (payload === undefined ? undefined : String(payload.data.id));
     if (payload === undefined || dataId === undefined) return response(400, { error: 'INVALID_EVENT' });
+    if (String(payload.data.id) !== dataId) return response(400, { error: 'INVALID_EVENT' });
     try {
       const secret = await dependencies.getWebhookSecret();
       if (!verifyMercadoPagoWebhookSignature({
@@ -57,12 +58,12 @@ export function createMercadoPagoWebhookHandler(dependencies: MercadoPagoWebhook
         dataId, secret,
       })) return response(401, { error: 'INVALID_SIGNATURE' });
       const result = await dependencies.reconcile({
-        notificationId: String(payload.id), eventType: payload.type, paymentId: String(payload.data.id),
+        notificationId: String(payload.id), eventType: payload.type, paymentId: dataId,
         payload: payload as unknown as Prisma.InputJsonValue,
       });
       return response(200, { received: true, ...result });
     } catch (error) {
-      console.error('Mercado Pago webhook processing failed', error instanceof Error ? error.message : 'unknown error');
+      console.error('Mercado Pago webhook processing failed');
       return response(500, { error: 'TEMPORARY_FAILURE' });
     }
   };

@@ -1,6 +1,12 @@
 # Datos persistentes — Fase B
 
 El CDK define la stack `CuentasPagarData-dev`, pero no debe desplegarse aún.
+La preparación de Fase C agrega una opción de salida por NAT para las nuevas
+Lambdas. Recursos, costos y condiciones de activación están detallados en
+[DESPLIEGUE_FASE_C.md](DESPLIEGUE_FASE_C.md); todavía requieren autorización.
+Para el MVP de dos tenants se acordó un objetivo de USD 20/mes AWS. La stack
+de datos expandida se conserva en código pero se excluye de la síntesis por
+defecto; consultar [MVP_DOS_TENANTS.md](MVP_DOS_TENANTS.md).
 No depende de `apagar.averiqsj.app`, DNS, CloudFront ni de un cambio en YCloud.
 
 ## Recursos preparados

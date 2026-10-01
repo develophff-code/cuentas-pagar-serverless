@@ -14,6 +14,17 @@ function signature(): string {
   return `ts=${timestamp},v1=${createHmac('sha256', secret).update(manifest).digest('hex')}`;
 }
 
+test('rechaza un ID de cuerpo distinto del ID firmado en la URL', async () => {
+  const handler = createMercadoPagoWebhookHandler({
+    getWebhookSecret: async () => secret,
+    reconcile: async () => { assert.fail('No debe acreditar otro pago'); },
+  });
+  const response = await handler({ httpMethod: 'POST', path: '/api/webhook/mercado-pago',
+    body: JSON.stringify({ id: 'notification-1', type: 'payment', data: { id: 'other-payment' } }),
+    headers: { 'x-signature': signature(), 'x-request-id': requestId }, queryStringParameters: { 'data.id': dataId } });
+  assert.equal(response.statusCode, 400);
+});
+
 test('acepta sólo un webhook firmado y delega la acreditación con el identificador del pago', async () => {
   let receivedPaymentId: string | undefined;
   const handler = createMercadoPagoWebhookHandler({

@@ -14,10 +14,12 @@ La solución permite administrar proveedores, comprobantes, facturas y pagos com
 
 ## Estado actual
 
-La **Fase A está cerrada** y la implementación de la **Fase B está completa en
-código y sintetizada**, pendiente de aprobación de costos y despliegue en
-`dev`. La **Fase C comenzó** con el contrato seguro de Mercado Pago, todavía
-sin credenciales, URL pública ni tráfico real. El repositorio cuenta con:
+La **Fase A está cerrada**, la Fase B tiene su backend implementado en código
+y la **Fase C está en desarrollo**. El primer despliegue se orienta a un MVP
+con **dos tenants testigos** y un presupuesto objetivo de **USD 20/mes en AWS**,
+incluidos los recursos existentes y con YCloud/WhatsApp por separado.
+La adaptación económica a Data API y pausa automática de Aurora sigue
+pendiente; el backend de negocio todavía no está desplegado. El repositorio cuenta con:
 
 - Modelo de dominio y reglas para tenants, planes, membresías, proveedores, facturas y pagos.
 - Reglas de autorización: el administrador confirma pagos propuestos por `OPERATOR_PAYMENTS`; `OPERATOR_UPLOAD` no puede confirmar facturas ni pagos.
@@ -30,15 +32,30 @@ sin credenciales, URL pública ni tráfico real. El repositorio cuenta con:
 - Fundación AWS de `dev` desplegada en `us-east-1`: KMS, Secrets Manager y presupuesto mensual de USD 20.
 - Stack de aplicación preparada: API Gateway REST, webhook YCloud firmado,
   DynamoDB con outbox, SQS FIFO, workers, DLQs, alarmas y logs con retención.
-- Stack de datos preparada: VPC aislada, Aurora Serverless v2, RDS Proxy y S3
-  privado cifrado. No está desplegada.
+- Infraestructura expandida preparada: Aurora Serverless v2, RDS Proxy, S3
+  privado y salida por NAT opcional. No está desplegada ni aprobada para el MVP.
 - Convenciones de aislamiento para `dev`, `staging` y `prod`.
 - Cliente server-side de Checkout Pro y validación HMAC de webhooks de Mercado
   Pago, con pruebas unitarias y sin secretos versionados.
+- Órdenes de suscripción idempotentes, conciliación de pagos aprobados, gracia
+  de 48 horas, mora y retención de datos por 90 días sin borrado automático.
+- Tokens opacos para `/p/{token}`, Checkout de 48 horas y retornos de pago que
+  informan al usuario sin activar la suscripción.
+- Dispatcher persistente de `notification_intents` para las tres plantillas
+  de suscripción de YCloud: reserva concurrente de envíos, reintentos acotados
+  y revisión manual de resultados ambiguos.
+- Entradas Lambda y stack optativa de negocio con API autenticada por Cognito,
+  webhook Mercado Pago, redirección pública y jobs desactivados por defecto.
 
-Todavía no hay recursos de Fase B desplegados, Cognito, Mercado Pago, frontend,
-dominios nuevos ni tráfico real. El webhook existente de YCloud permanece sin
-cambios hasta la migración aprobada.
+Las plantillas Utility `subscription_renewal_reminder`,
+`subscription_payment_link_v2` y `subscription_payment_confirmed` ya están
+activas en YCloud, en Spanish (ARG), código `es_AR`. Falta confirmar sus cuerpos,
+variables y botón antes de configurar y activar el dispatcher. El emisor es
+`+5492646276709`; la API key se guarda exclusivamente en Secrets Manager.
+
+Todavía faltan el despliegue del backend de negocio, el frontend, la publicación
+de los dominios nuevos y las pruebas de compra de Mercado Pago. El webhook
+existente de YCloud permanece sin cambios hasta la migración aprobada.
 
 ## Documentación clave
 
@@ -51,23 +68,30 @@ cambios hasta la migración aprobada.
 - [Datos persistentes de Fase B](docs/DATOS_FASE_B.md)
 - [Operación, DLQs y backups de Fase B](docs/OPERACION_FASE_B.md)
 - [Integración segura de Mercado Pago — Fase C](docs/MERCADO_PAGO_FASE_C.md)
+- [Backend y condiciones de despliegue de Fase C](docs/DESPLIEGUE_FASE_C.md)
+- [MVP de dos tenants y presupuesto AWS de USD 20/mes](docs/MVP_DOS_TENANTS.md)
 
 ## Requisitos locales
 
 - Node.js 22 o posterior.
 - npm.
 - PostgreSQL local, sólo para migraciones y pruebas de integración.
-- AWS CLI v2 y perfil SSO configurado, sólo si se sintetiza o despliega infraestructura.
+- AWS CLI v2 y perfil SSO configurado para consultar o desplegar recursos AWS.
+  La síntesis local no requiere consultar secretos ni crear recursos.
 
 Instalación y verificaciones generales:
 
 ```powershell
 npm install
+npm run prisma:generate
 npm run typecheck
 npm test
-npm run prisma:generate
 npm run cdk:synth
 ```
+
+`npm run lambda:package` genera el artefacto Lambda con código compilado y
+dependencias de producción. `npm run cdk:synth` lo prepara antes de sintetizar;
+ninguno de esos comandos despliega infraestructura.
 
 ## Base de datos local
 
@@ -79,8 +103,10 @@ La base de desarrollo local es `cuentas_pagar_serverless`. Aplicar las migracion
 4. `database/migrations/004_http_command_receipts.sql`
 5. `database/migrations/005_subscription_checkout_idempotency.sql`
 6. `database/migrations/006_subscription_lifecycle_policy.sql`
+7. `database/migrations/007_subscription_payment_link_tokens.sql`
+8. `database/migrations/008_notification_dispatch.sql`
 
-Para ejecutar la prueba de integración, se debe proporcionar la conexión sólo durante la sesión actual de PowerShell:
+Para ejecutar las pruebas de integración, se debe proporcionar la conexión sólo durante la sesión actual de PowerShell:
 
 ```powershell
 $env:DATABASE_URL = "postgresql://postgres:TU_CLAVE@localhost:5432/cuentas_pagar_serverless"
@@ -98,6 +124,17 @@ La cuenta AWS actual se usa exclusivamente como `dev` y está en `us-east-1`. `s
 - La rama `main` se promueve primero a `staging` y luego a `prod` usando el mismo artefacto validado.
 - Antes de cualquier despliegue se revisan identidad AWS, `cdk diff`, costos e impacto externo.
 
+CDK usa por defecto `infrastructureProfile=mvp`: por ahora sólo sintetiza
+fundación e ingress YCloud, sin la stack de datos expandida ni Proxy/NAT.
+Solicitar `enableBusiness=true` con ese perfil falla hasta que esté implementada
+la adaptación económica. El perfil no representa un MVP de negocio terminado.
+La infraestructura expandida exige selección explícita y conserva pendiente
+su aprobación de costos. No usar `cdk deploy --all`.
+
+El presupuesto de USD 20 es un objetivo con alertas, no un límite automático
+de consumo. Acordarlo no autoriza a crear recursos: el despliegue requiere
+revisar el costo concreto y obtener confirmación del dueño.
+
 Los dominios productivos previstos son `apagar.averiqsj.app` para la web y
 `apagar.averiqsj.com` para los webhooks. No se apuntan a una IP de EC2: al
 publicarlos usarán CloudFront y API Gateway con certificados ACM. El servicio
@@ -106,8 +143,11 @@ validada.
 
 ## Próximo paso
 
-Antes de desplegar Fase B en `dev`, revisar el costo de Aurora, RDS Proxy,
-almacenamiento, logs y endpoints privados; ajustar el presupuesto y aprobar el
-despliegue. Para completar Fase C faltan publicar el webhook idempotente, la
-configuración de URLs públicas y las pruebas con credenciales de prueba de
-Mercado Pago.
+Adaptar persistencia y transacciones a Data API, configurar Aurora con pausa
+automática a cero y reemplazar el polling del dispatcher por eventos y
+reintentos puntuales. Preparar el runner de migraciones y validar aislamiento,
+idempotencia y costos para los dos tenants testigos.
+
+Después de aprobar el despliegue, publicar `/p/{token}` bajo
+`apagar.averiqsj.app`, configurar el webhook Mercado Pago, completar el contrato
+de las plantillas YCloud y ejecutar las pruebas de compra y notificaciones.

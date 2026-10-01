@@ -12,6 +12,11 @@ Las migraciones posteriores se aplican en orden: `002` agrega las claves y
 huellas de idempotencia de proveedores y facturas; `003` agrega la huella para
 los lotes de pago. Nunca se salta ni se reaplica una migración ya registrada.
 
+La Fase C también requiere `004` (recibos HTTP), `005` (idempotencia Checkout),
+`006` (mora/retención), `007` (tokens de enlace) y `008` (dispatcher de avisos).
+Aplicarlas en ese orden después de `003`. La migración `008` agrega reservas y
+estados de despacho a `outbound_messages`; no envía mensajes ni lee secretos.
+
 ## Aplicación local
 
 La migración se aplica una sola vez sobre una base nueva. No contiene contraseñas.

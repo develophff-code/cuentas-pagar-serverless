@@ -203,6 +203,9 @@ model notification_intents {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model outbound_messages {
+  dispatch_state         String                  @default("READY")
+  next_attempt_at         DateTime                @default(now()) @db.Timestamptz(6)
+  claimed_at              DateTime?               @db.Timestamptz(6)
   id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id              String                  @db.Uuid
   notification_intent_id String?                 @db.Uuid

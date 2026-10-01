@@ -6,3 +6,4 @@ cdk.out/
 !.env.example
 coverage/
 src/generated/
+.lambda-build/

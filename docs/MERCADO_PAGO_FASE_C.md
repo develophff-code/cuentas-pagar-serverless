@@ -84,11 +84,15 @@ entrada diaria es `src/jobs/subscription-lifecycle-job.ts`. Antes de desplegarla
 se conectará a un scheduler administrado y se configurará la observabilidad.
 El mismo job crea de forma idempotente una intención de recordatorio cinco días
 antes y una intención con el enlace de Checkout al vencimiento. Aún no envía
-WhatsApp ni correo: un dispatcher de canales consumirá `notification_intents`.
+WhatsApp ni correo directamente: `NotificationDispatcher` consume las tres
+intenciones de suscripción mediante YCloud. Su activación requiere la migración
+`008`, confirmar los parámetros de las plantillas y desplegar el backend.
+Ver [DESPLIEGUE_FASE_C.md](DESPLIEGUE_FASE_C.md).
 El enlace del botón usa un token opaco de vida limitada bajo `/p/{token}`; no
 expone la URL de Mercado Pago y la respuesta de redirección no se almacena en
-caché. La ruta pública y el dispatcher se conectarán al despliegue cuando estén
-disponibles la Lambda de negocio, Aurora y el dominio `.app`.
+caché. La ruta pública y el dispatcher están preparados en la stack optativa de
+negocio, todavía sin desplegar. Aurora, Proxy, salida de red y dominio `.app`
+requieren revisión de costos y autorización antes de provisionarse.
 
 ## Dominios y certificados
 
