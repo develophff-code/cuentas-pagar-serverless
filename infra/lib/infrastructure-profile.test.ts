@@ -7,8 +7,8 @@ test('perfil por defecto respeta el MVP sin sintetizar Aurora permanente ni Prox
   assert.deepEqual(infrastructurePlan('mvp', false), { includeData: false, includeBusiness: false });
 });
 
-test('pedir negocio sin adaptar el MVP falla antes de preparar recursos caros', () => {
-  assert.throws(() => infrastructurePlan('mvp', true), /todavía requiere adaptación/);
+test('negocio MVP incorpora datos sólo con selección explícita', () => {
+  assert.deepEqual(infrastructurePlan('mvp', true), { includeData: true, includeBusiness: true });
 });
 
 test('la infraestructura expandida necesita selección explícita', () => {

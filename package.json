@@ -8,7 +8,7 @@
   },
   "scripts": {
     "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
-    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js dist/packages/domain/src/payment-grid-policy.test.js dist/packages/domain/src/subscription-lifecycle-policy.test.js dist/infra/lib/environment.test.js dist/infra/lib/foundation-stack.test.js dist/infra/lib/application-stack.test.js dist/infra/lib/data-stack.test.js dist/tests/api/http-handler.test.js dist/tests/persistence/tenant-authorization-service.test.js dist/tests/webhooks/ycloud-signature.test.js dist/tests/webhooks/ycloud-event.test.js dist/tests/webhooks/mercado-pago-webhook-handler.test.js dist/tests/webhooks/resilience.test.js dist/tests/subscriptions/mercado-pago-signature.test.js dist/tests/subscriptions/mercado-pago-client.test.js dist/tests/subscriptions/payment-link-redirect-handler.test.js dist/tests/notifications/notification-dispatcher.test.js dist/infra/lib/business-stack.test.js dist/infra/lib/infrastructure-profile.test.js",
+    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js dist/packages/domain/src/payment-grid-policy.test.js dist/packages/domain/src/subscription-lifecycle-policy.test.js dist/infra/lib/environment.test.js dist/infra/lib/foundation-stack.test.js dist/infra/lib/application-stack.test.js dist/infra/lib/data-stack.test.js dist/tests/api/http-handler.test.js dist/tests/persistence/tenant-authorization-service.test.js dist/tests/webhooks/ycloud-signature.test.js dist/tests/webhooks/ycloud-event.test.js dist/tests/webhooks/mercado-pago-webhook-handler.test.js dist/tests/webhooks/resilience.test.js dist/tests/subscriptions/mercado-pago-signature.test.js dist/tests/subscriptions/mercado-pago-client.test.js dist/tests/subscriptions/payment-link-redirect-handler.test.js dist/tests/notifications/notification-dispatcher.test.js dist/infra/lib/business-stack.test.js dist/infra/lib/infrastructure-profile.test.js dist/tests/persistence/data-api-adapter.test.js dist/tests/notifications/dispatch-queue.test.js",
     "test:integration": "node ./node_modules/typescript/bin/tsc && node --test dist/tests/integration/postgres-idempotency.test.js dist/tests/integration/notification-dispatcher.test.js",
     "build": "node ./node_modules/typescript/bin/tsc",
     "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
@@ -26,10 +26,12 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1136.0",
+    "@aws-sdk/client-rds-data": "3.1136.0",
     "@aws-sdk/client-secrets-manager": "^3.1136.0",
     "@aws-sdk/client-sqs": "^3.1136.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "@prisma/driver-adapter-utils": "7.10.0",
     "dotenv": "^17.4.2",
     "pg": "^8.23.0"
   }

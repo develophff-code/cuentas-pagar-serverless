@@ -4,6 +4,7 @@ import { MercadoPagoRuntimeGateway } from '../subscriptions/mercado-pago-runtime
 import { SubscriptionCheckoutService } from '../subscriptions/subscription-checkout-service.js';
 import { SubscriptionRenewalNotificationService } from '../subscriptions/subscription-renewal-notification-service.js';
 import { PaymentLinkTokenService } from '../subscriptions/payment-link-token-service.js';
+import { enqueueNotificationDispatch } from '../notifications/dispatch-queue.js';
 
 /** Lambda programada diaria: no borra datos, sólo reconcilia estados y fechas. */
 export async function handler(): Promise<{ reconciled: number; reminders: number; paymentLinks: number }> {
@@ -14,5 +15,7 @@ export async function handler(): Promise<{ reconciled: number; reminders: number
   });
   const notifications = await new SubscriptionRenewalNotificationService(prisma, checkout, new PaymentLinkTokenService(prisma)).schedule();
   const lifecycle = await new TenantLifecycleService(prisma).reconcileAll();
+  // También recupera intenciones durables cuyo mensaje SQS pudo perderse tras un fallo.
+  await enqueueNotificationDispatch('LIFECYCLE');
   return { ...lifecycle, ...notifications };
 }

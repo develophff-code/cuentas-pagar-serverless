@@ -3,14 +3,16 @@ import * as cdk from 'aws-cdk-lib';
 import { FoundationStack } from '../lib/foundation-stack.js';
 import { ApplicationStack } from '../lib/application-stack.js';
 import { DataStack } from '../lib/data-stack.js';
+import { MvpDataStack } from '../lib/mvp-data-stack.js';
 import { BusinessStack } from '../lib/business-stack.js';
 import type * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { parseDeploymentStage, TARGET_REGION } from '../lib/environment.js';
 import { infrastructurePlan, parseInfrastructureProfile } from '../lib/infrastructure-profile.js';
 
 const app = new cdk.App();
+const profile = parseInfrastructureProfile(app.node.tryGetContext('infrastructureProfile'));
 const plan = infrastructurePlan(
-  parseInfrastructureProfile(app.node.tryGetContext('infrastructureProfile')),
+  profile,
   app.node.tryGetContext('enableBusiness') === 'true',
 );
 const stage = parseDeploymentStage(
@@ -34,7 +36,9 @@ new ApplicationStack(app, `CuentasPagarApplication-${stage}`, {
 });
 
 if (plan.includeData) {
-  const data = new DataStack(app, `CuentasPagarData-${stage}`, { stage, env: environment, businessEgress: plan.includeBusiness });
+  const data = profile === 'mvp'
+    ? new MvpDataStack(app, `CuentasPagarMvpData-${stage}`, { stage, env: environment })
+    : new DataStack(app, `CuentasPagarData-${stage}`, { stage, env: environment, businessEgress: plan.includeBusiness });
   if (plan.includeBusiness) {
     const templateBindings: unknown = app.node.tryGetContext('ycloudTemplateBindings');
     const publicDomain: unknown = app.node.tryGetContext('publicDomain');

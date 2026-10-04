@@ -8,8 +8,5 @@ export function parseInfrastructureProfile(value: unknown): InfrastructureProfil
 }
 
 export function infrastructurePlan(profile: InfrastructureProfile, enableBusiness: boolean) {
-  if (profile === 'mvp' && enableBusiness) {
-    throw new Error('El backend MVP con Data API todavía requiere adaptación. No se habilita Proxy/NAT como alternativa automática.');
-  }
-  return { includeData: profile === 'expanded', includeBusiness: profile === 'expanded' && enableBusiness };
+  return { includeData: profile === 'expanded' || enableBusiness, includeBusiness: enableBusiness };
 }

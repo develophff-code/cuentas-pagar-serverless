@@ -7,3 +7,4 @@ cdk.out/
 coverage/
 src/generated/
 .lambda-build/
+.npm-cache/

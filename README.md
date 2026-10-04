@@ -18,8 +18,9 @@ La **Fase A está cerrada**, la Fase B tiene su backend implementado en código
 y la **Fase C está en desarrollo**. El primer despliegue se orienta a un MVP
 con **dos tenants testigos** y un presupuesto objetivo de **USD 20/mes en AWS**,
 incluidos los recursos existentes y con YCloud/WhatsApp por separado.
-La adaptación económica a Data API y pausa automática de Aurora sigue
-pendiente; el backend de negocio todavía no está desplegado. El repositorio cuenta con:
+El acceso por Data API, la pausa automática de Aurora y el despacho por SQS
+están preparados en código; falta validarlos contra AWS y el backend de negocio
+todavía no está desplegado. El repositorio cuenta con:
 
 - Modelo de dominio y reglas para tenants, planes, membresías, proveedores, facturas y pagos.
 - Reglas de autorización: el administrador confirma pagos propuestos por `OPERATOR_PAYMENTS`; `OPERATOR_UPLOAD` no puede confirmar facturas ni pagos.
@@ -34,6 +35,10 @@ pendiente; el backend de negocio todavía no está desplegado. El repositorio cu
   DynamoDB con outbox, SQS FIFO, workers, DLQs, alarmas y logs con retención.
 - Infraestructura expandida preparada: Aurora Serverless v2, RDS Proxy, S3
   privado y salida por NAT opcional. No está desplegada ni aprobada para el MVP.
+- Perfil MVP optativo: Aurora de 0 a 1 ACU, pausa tras cinco minutos, Data API,
+  Lambdas fuera de VPC y SQS para avisos y reintentos, sin polling cada minuto.
+- Adaptador Prisma/Data API con parámetros SQL, decimales, fechas UTC y
+  transacciones; pruebas locales con transporte simulado y cliente Prisma real.
 - Convenciones de aislamiento para `dev`, `staging` y `prod`.
 - Cliente server-side de Checkout Pro y validación HMAC de webhooks de Mercado
   Pago, con pruebas unitarias y sin secretos versionados.
@@ -124,10 +129,11 @@ La cuenta AWS actual se usa exclusivamente como `dev` y está en `us-east-1`. `s
 - La rama `main` se promueve primero a `staging` y luego a `prod` usando el mismo artefacto validado.
 - Antes de cualquier despliegue se revisan identidad AWS, `cdk diff`, costos e impacto externo.
 
-CDK usa por defecto `infrastructureProfile=mvp`: por ahora sólo sintetiza
+CDK usa por defecto `infrastructureProfile=mvp`: sin opciones sólo sintetiza
 fundación e ingress YCloud, sin la stack de datos expandida ni Proxy/NAT.
-Solicitar `enableBusiness=true` con ese perfil falla hasta que esté implementada
-la adaptación económica. El perfil no representa un MVP de negocio terminado.
+Solicitar `enableBusiness=true` prepara las stacks MVP de datos y negocio;
+los jobs y el consumidor SQS quedan desactivados. Esto permite revisar la
+infraestructura localmente y no confirma un MVP operativo en AWS.
 La infraestructura expandida exige selección explícita y conserva pendiente
 su aprobación de costos. No usar `cdk deploy --all`.
 
@@ -143,10 +149,9 @@ validada.
 
 ## Próximo paso
 
-Adaptar persistencia y transacciones a Data API, configurar Aurora con pausa
-automática a cero y reemplazar el polling del dispatcher por eventos y
-reintentos puntuales. Preparar el runner de migraciones y validar aislamiento,
-idempotencia y costos para los dos tenants testigos.
+Preparar el runner de migraciones para Data API y completar la validación
+de aislamiento, idempotencia y transacciones contra Aurora. Revisar el costo
+total de los dos tenants testigos y pedir aprobación antes de desplegar.
 
 Después de aprobar el despliegue, publicar `/p/{token}` bajo
 `apagar.averiqsj.app`, configurar el webhook Mercado Pago, completar el contrato

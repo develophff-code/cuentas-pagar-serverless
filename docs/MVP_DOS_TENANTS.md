@@ -1,6 +1,6 @@
 # MVP con dos tenants testigos
 
-Actualización de alcance: 2026-10-01. El dueño quiere mostrar un MVP a los dos
+Actualización de alcance: 2026-10-04. El dueño quiere mostrar un MVP a los dos
 tenants relevados y necesita un presupuesto más económico. La propuesta de
 Aurora permanente + RDS Proxy + NAT **no está aprobada para este MVP**.
 No se desplegaron recursos, no se cambiaron secretos y no se hicieron commits.
@@ -65,14 +65,17 @@ Fuentes consultadas:
 
 ## Impacto sobre lo ya implementado
 
-La configuración preparada de negocio usa PrismaPg, conexión TCP y Proxy.
-**Todavía no implementa esta alternativa económica.** Cambiar sólo la capacidad
-de Aurora o eliminar el Proxy no alcanza: hay que adaptar el acceso a datos y
-las transacciones a Data API y verificar todas las garantías de idempotencia.
+El perfil MVP ya prepara un adaptador Prisma para Data API: parámetros SQL,
+tipos del esquema y transacciones remotas, sin obtener la contraseña en la
+Lambda. Las pruebas usan transporte simulado y el cliente Prisma real; no
+reemplazan la validación de concurrencia e idempotencia contra Aurora.
 Se conservan el esquema PostgreSQL, las migraciones y las reglas de dominio.
 
-También hay que adaptar el transporte del dispatcher a eventos, el runner de
-migraciones y los permisos IAM de las Lambdas. La pausa exige reintentos:
+El dispatcher se activa por SQS desde el ciclo diario y la conciliación de
+pagos. Programa reintentos puntuales y continuación de lotes; no consulta la
+base cada minuto. Los mensajes de activación no contienen destinatarios ni
+tokens. Las Lambdas tienen permisos sobre los ARNs de la base y sus secretos.
+Queda pendiente el runner de migraciones por Data API. La pausa exige reintentos:
 AWS indica una reanudación típica de aproximadamente 15 segundos, y a veces más.
 Para demostrar sin espera inicial, abrir/probar la aplicación antes de la reunión;
 esa preparación también genera consumo normal.
@@ -84,11 +87,13 @@ provisionamiento ni aumenta el presupuesto de AWS.
 
 ## Protección de la configuración local
 
-El punto de entrada CDK usa por defecto `infrastructureProfile=mvp`. Por ahora
-ese perfil sólo sintetiza fundación e ingress existente: **no crea ni representa
-un backend MVP terminado**. Mientras Data API no esté conectado, solicitar
-`enableBusiness=true` falla con una explicación; no agrega Proxy o NAT como
-reemplazo automático.
+El punto de entrada CDK usa por defecto `infrastructureProfile=mvp`. Sin
+`enableBusiness=true` sólo sintetiza fundación e ingress existente. Con esa
+opción incorpora `CuentasPagarMvpData-dev` y negocio: Aurora 16.6 de 0 a 1 ACU,
+pausa de cinco minutos, Data API, S3 privado y Lambdas fuera de VPC. No agrega
+Proxy, NAT, endpoints de interfaz ni una nueva clave KMS de costo fijo.
+Los jobs y el consumidor SQS quedan desactivados por defecto. No representa
+un backend probado y operativo en AWS ni autoriza desplegarlo.
 
 La configuración expandida se conserva para referencia y pruebas, pero exige
 `infrastructureProfile=expanded`. Seleccionarla no concede aprobación de costos.

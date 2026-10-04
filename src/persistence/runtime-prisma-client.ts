@@ -2,6 +2,7 @@ import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-sec
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { createPrismaClientFromEnvironment } from './prisma-client.js';
+import { PrismaDataApi } from './data-api-adapter.js';
 
 let client: Promise<PrismaClient> | undefined;
 /** Sólo el runtime Lambda lee credenciales; CDK recibe únicamente ARN y endpoint. */
@@ -14,6 +15,14 @@ export async function getRuntimePrismaClient(): Promise<PrismaClient> {
 }
 
 async function load(): Promise<PrismaClient> {
+  if (process.env.DATABASE_ACCESS_MODE === 'data-api') {
+    return new PrismaClient({
+      adapter: new PrismaDataApi({ resourceArn: process.env.DATABASE_CLUSTER_ARN ?? '',
+        secretArn: process.env.DATABASE_CREDENTIALS_SECRET_ARN ?? '', database: process.env.DATABASE_NAME ?? 'cuentas_pagar' }),
+      transactionOptions: { maxWait: 30_000, timeout: 25_000 },
+    });
+  }
+  if (process.env.DATABASE_ACCESS_MODE && process.env.DATABASE_ACCESS_MODE !== 'proxy') throw new Error('DATABASE_ACCESS_MODE_INVALID');
   if (!process.env.DATABASE_CREDENTIALS_SECRET_ARN) return createPrismaClientFromEnvironment();
   const host = process.env.DATABASE_HOST;
   if (!host) throw new Error('DATABASE_HOST_REQUIRED');

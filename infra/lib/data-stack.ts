@@ -14,6 +14,7 @@ export interface DataStackProps extends cdk.StackProps {
 
 /** Datos persistentes aislados. Su despliegue exige revisión explícita de costos. */
 export class DataStack extends cdk.Stack {
+  readonly connectionMode = 'proxy' as const;
   readonly vpc: ec2.IVpc;
   readonly applicationSecurityGroup: ec2.ISecurityGroup;
   readonly databaseSecret: secretsmanager.ISecret;

@@ -4,6 +4,7 @@ import { MercadoPagoRuntimeGateway } from '../subscriptions/mercado-pago-runtime
 import { SubscriptionPaymentReconciliationService } from '../subscriptions/subscription-payment-reconciliation-service.js';
 import { createMercadoPagoWebhookHandler } from './mercado-pago-webhook-handler.js';
 import type { ApiGatewayRequest, ApiGatewayResponse } from '../api/http-types.js';
+import { enqueueNotificationDispatch } from '../notifications/dispatch-queue.js';
 
 let webhookSecret: Promise<string> | undefined;
 async function getWebhookSecret(): Promise<string> {
@@ -21,8 +22,14 @@ async function getWebhookSecret(): Promise<string> {
 export async function handler(event: ApiGatewayRequest): Promise<ApiGatewayResponse> {
   return createMercadoPagoWebhookHandler({
     getWebhookSecret,
-    reconcile: async (notification) => new SubscriptionPaymentReconciliationService(
-      await getRuntimePrismaClient(), new MercadoPagoRuntimeGateway(),
-    ).reconcile(notification),
+    reconcile: async (notification) => {
+      const result = await new SubscriptionPaymentReconciliationService(
+        await getRuntimePrismaClient(), new MercadoPagoRuntimeGateway(),
+      ).reconcile(notification);
+      // Repetir el wake-up en duplicados permite reparar un fallo de SQS después
+      // de acreditar el pago. La reserva del dispatcher evita un segundo envío.
+      if (result.credited || result.duplicate || result.reason === 'ORDER_ALREADY_FINAL') await enqueueNotificationDispatch('PAYMENT');
+      return result;
+    },
   })(event);
 }

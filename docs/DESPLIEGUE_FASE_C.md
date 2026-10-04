@@ -1,6 +1,6 @@
 # Preparación del backend de Fase C
 
-Estado al 2026-10-01: implementación local, **sin despliegue ni cambios DNS**.
+Estado al 2026-10-04: implementación local, **sin despliegue ni cambios DNS**.
 Se conserva `develop`; los commits y el push corresponden al dueño.
 
 **Cambio de alcance del dueño:** el primer despliegue será un MVP para dos
@@ -28,8 +28,13 @@ su estimación y las adaptaciones pendientes están en
   conectar posteriormente los eventos de estado del proveedor.
 - La Lambda de negocio, el webhook Mercado Pago, `/p/{token}`, el job diario y
   el dispatcher tienen entradas de runtime. Sólo las Lambdas leen secretos.
-  PostgreSQL usa TLS con validación de certificado, pool de dos conexiones y
-  endpoint de Proxy; la contraseña nunca entra a CloudFormation.
+  En `expanded`, PostgreSQL usa TLS, pool de dos conexiones y Proxy. En `mvp`,
+  Prisma usa Data API por HTTPS con ARNs; la Lambda no obtiene la contraseña.
+- El perfil MVP prepara Aurora privada de 0 a 1 ACU con pausa tras cinco minutos,
+  sin Proxy/NAT. SQS activa el dispatcher por pagos y ciclo diario; programa
+  reintentos acotados y continuación de lotes. No hay polling cada minuto.
+  Las transacciones y conversiones SQL tienen pruebas locales; su validación
+  contra Aurora y el runner de migraciones siguen pendientes.
 - La stack optativa `CuentasPagarBusiness-dev` agrega Cognito para `/v1`, rutas
   públicas de pago/webhook, jobs inicialmente **desactivados**, alarmas de errores
   y, si se indica dominio, CloudFront sin caché y ACM validado por DNS.
@@ -99,8 +104,8 @@ El presupuesto vigente de USD 20 no alcanza para esta arquitectura expandida.
 No se cambia automáticamente:
 se necesita autorización del dueño sobre recursos, costos y presupuesto.
 Un presupuesto alerta, pero no limita el gasto. Una alternativa de menor costo
-(Aurora sin Proxy o acceso mediante Data API) requiere otra decisión de
-arquitectura; no se implementó en este bloque.
+mediante Data API ya está preparada en el perfil MVP, con validación real y
+cotización final pendientes; ver el documento de los dos tenants.
 
 ## Verificación y orden de activación
 
@@ -110,8 +115,8 @@ Preparación local sin leer Secrets Manager ni crear recursos:
 npm run typecheck
 npm test
 npm run lambda:package
-# Referencia expandida para revisar localmente; no aprobada para el MVP:
-node ./node_modules/aws-cdk/bin/cdk synth CuentasPagarBusiness-dev --context infrastructureProfile=expanded --context enableBusiness=true --context publicDomain=apagar.averiqsj.app --output cdk.out --quiet
+# Preparación MVP local; no crea recursos:
+node ./node_modules/aws-cdk/bin/cdk synth CuentasPagarBusiness-dev --context infrastructureProfile=mvp --context enableBusiness=true --context publicDomain=apagar.averiqsj.app --output cdk.out --quiet
 ```
 
 No usar `cdk deploy --all`. Antes del despliegue:
@@ -121,7 +126,7 @@ No usar `cdk deploy --all`. Antes del despliegue:
 2. Revisar el diff remoto con el perfil autorizado, sin consultar valores de
    secretos; desplegar datos y negocio con jobs desactivados.
 3. Aplicar una sola vez `001`–`008`, en orden, desde un runner controlado con
-   acceso privado. Ese runner todavía no está implementado; no ejecutar
+   acceso por Data API en el MVP. Ese runner todavía no está implementado; no ejecutar
    migraciones al inicializar Lambdas.
 4. Validar ACM mediante el CNAME entregado por AWS en Hostinger y luego apuntar
    `.app` a CloudFront. La stack puede quedar esperando validación ACM.

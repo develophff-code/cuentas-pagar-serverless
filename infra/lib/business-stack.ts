@@ -5,6 +5,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
@@ -14,11 +15,12 @@ import { Construct } from 'constructs';
 import * as path from 'node:path';
 import type { DeploymentStage } from './environment.js';
 import type { DataStack } from './data-stack.js';
+import type { MvpDataStack } from './mvp-data-stack.js';
 import { parseTemplateBindings } from '../../src/notifications/subscription-template.js';
 
 export interface BusinessStackProps extends cdk.StackProps {
   stage: DeploymentStage;
-  data: DataStack;
+  data: DataStack | MvpDataStack;
   runtimeConfig: secretsmanager.ISecret;
   runtimeConfigEncryptionKeyArn: string;
   templateBindings?: string;
@@ -37,6 +39,16 @@ export class BusinessStack extends cdk.Stack {
       throw new Error('Schedules require confirmed templates and public domain.');
     }
     if (props.templateBindings) parseTemplateBindings(props.templateBindings);
+    const data = props.data;
+    const mvp = data.connectionMode === 'data-api';
+    const dispatchDlq = mvp ? new sqs.Queue(this, 'DispatchDlq', {
+      encryption: sqs.QueueEncryption.SQS_MANAGED, retentionPeriod: cdk.Duration.days(14),
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    }) : undefined;
+    const dispatchQueue = dispatchDlq ? new sqs.Queue(this, 'DispatchQueue', {
+      encryption: sqs.QueueEncryption.SQS_MANAGED, visibilityTimeout: cdk.Duration.minutes(18),
+      deadLetterQueue: { queue: dispatchDlq, maxReceiveCount: 5 },
+    }) : undefined;
     const api = new apigateway.RestApi(this, 'BusinessApi', {
       endpointConfiguration: { types: [apigateway.EndpointType.REGIONAL] },
       deployOptions: { stageName: props.stage },
@@ -52,19 +64,23 @@ export class BusinessStack extends cdk.Stack {
     const code = lambda.Code.fromAsset(path.resolve(process.cwd(), '.lambda-build'));
     const createFunction = (name: string, handler: string, runtimeSecret: boolean, timeout = 30) => {
       const group = new logs.LogGroup(this, `${name}Logs`, {
-        retention: logs.RetentionDays.ONE_MONTH, removalPolicy: cdk.RemovalPolicy.RETAIN,
+        retention: mvp ? logs.RetentionDays.ONE_WEEK : logs.RetentionDays.ONE_MONTH, removalPolicy: cdk.RemovalPolicy.RETAIN,
       });
       const fn = new lambda.Function(this, name, {
         runtime: lambda.Runtime.NODEJS_22_X, handler, code, memorySize: 512,
         timeout: cdk.Duration.seconds(timeout),
-        vpc: props.data.vpc, vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-        securityGroups: [props.data.applicationSecurityGroup],
+        ...(data.connectionMode === 'proxy' ? {
+          vpc: data.vpc, vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+          securityGroups: [data.applicationSecurityGroup],
+        } : {}),
+        ...(mvp ? { reservedConcurrentExecutions: 2 } : {}),
         logGroup: group as unknown as logs.ILogGroupRef,
         environment: {
-          DATABASE_HOST: props.data.proxyEndpoint,
+          ...(data.connectionMode === 'data-api' ? {
+            DATABASE_ACCESS_MODE: 'data-api', DATABASE_CLUSTER_ARN: data.clusterArn,
+          } : { DATABASE_ACCESS_MODE: 'proxy', DATABASE_HOST: data.proxyEndpoint, NODE_EXTRA_CA_CERTS: '/var/runtime/ca-cert.pem' }),
           DATABASE_NAME: 'cuentas_pagar',
           DATABASE_CREDENTIALS_SECRET_ARN: props.data.databaseSecret.secretArn,
-          NODE_EXTRA_CA_CERTS: '/var/runtime/ca-cert.pem',
           ...(runtimeSecret ? { RUNTIME_CONFIG_SECRET_ARN: props.runtimeConfig.secretArn } : {}),
           PUBLIC_APP_BASE_URL: props.publicDomain ? `https://${props.publicDomain}` : apiBase,
           MERCADO_PAGO_WEBHOOK_URL: `${apiBase}/api/webhook/mercado-pago`,
@@ -74,8 +90,13 @@ export class BusinessStack extends cdk.Stack {
       // KMS de la stack de datos y genera una dependencia circular entre stacks.
       fn.addToRolePolicy(new cdk.aws_iam.PolicyStatement({ actions: ['secretsmanager:GetSecretValue'],
         resources: [props.data.databaseSecret.secretArn, ...(runtimeSecret ? [props.runtimeConfig.secretArn] : [])] }));
-      fn.addToRolePolicy(new cdk.aws_iam.PolicyStatement({ actions: ['kms:Decrypt'],
-        resources: [props.data.databaseEncryptionKeyArn, ...(runtimeSecret ? [props.runtimeConfigEncryptionKeyArn] : [])] }));
+      const decryptKeys = [...(data.connectionMode === 'proxy' ? [data.databaseEncryptionKeyArn] : []),
+        ...(runtimeSecret ? [props.runtimeConfigEncryptionKeyArn] : [])];
+      if (decryptKeys.length) fn.addToRolePolicy(new cdk.aws_iam.PolicyStatement({ actions: ['kms:Decrypt'], resources: decryptKeys }));
+      if (data.connectionMode === 'data-api') fn.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+        actions: ['rds-data:ExecuteStatement', 'rds-data:BeginTransaction', 'rds-data:CommitTransaction', 'rds-data:RollbackTransaction'],
+        resources: [data.clusterArn],
+      }));
       fn.metricErrors({ period: cdk.Duration.minutes(5) }).createAlarm(this, `${name}Errors`, {
         threshold: 1, evaluationPeriods: 1, treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
       });
@@ -100,7 +121,18 @@ export class BusinessStack extends cdk.Stack {
       schedule: events.Schedule.cron({ hour: '12', minute: '0' }), enabled: props.enableSchedules ?? false,
       targets: [new targets.LambdaFunction(lifecycle, { retryAttempts: 2 })],
     });
-    new events.Rule(this, 'NotificationEveryMinute', {
+    if (dispatchQueue) {
+      dispatchQueue.grantConsumeMessages(dispatcher);
+      new lambda.EventSourceMapping(this, 'DispatchMessages', { target: dispatcher,
+        eventSourceArn: dispatchQueue.queueArn, batchSize: 1, enabled: props.enableSchedules ?? false });
+      for (const fn of [lifecycle, mercadoPago, dispatcher]) {
+        fn.addEnvironment('NOTIFICATION_DISPATCH_QUEUE_URL', dispatchQueue.queueUrl);
+        dispatchQueue.grantSendMessages(fn);
+      }
+      dispatchDlq!.metricApproximateNumberOfMessagesVisible({ period: cdk.Duration.minutes(5) }).createAlarm(this, 'DispatchDlqMessages', {
+        threshold: 1, evaluationPeriods: 1, treatMissingData: cdk.aws_cloudwatch.TreatMissingData.NOT_BREACHING,
+      });
+    } else new events.Rule(this, 'NotificationEveryMinute', {
       schedule: events.Schedule.rate(cdk.Duration.minutes(1)), enabled: props.enableSchedules ?? false,
       targets: [new targets.LambdaFunction(dispatcher, { retryAttempts: 2 })],
     });
