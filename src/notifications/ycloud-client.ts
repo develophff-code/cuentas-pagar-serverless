@@ -1,6 +1,6 @@
 export interface YCloudTemplateComponent {
   type: 'body' | 'button';
-  parameters: Array<{ type: 'text'; text: string }>;
+  parameters: Array<{ type: 'text'; text: string; parameter_name?: string }>;
   sub_type?: 'url';
   index?: 0;
 }

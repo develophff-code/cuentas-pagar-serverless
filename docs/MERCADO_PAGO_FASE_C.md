@@ -29,6 +29,12 @@ mismo secreto. El emisor de `dev` es `+5492646276709`. Las plantillas Utility
 activas son `subscription_renewal_reminder`, `subscription_payment_link_v2` y
 `subscription_payment_confirmed`.
 
+Los textos, el mapeo de `plan` y `fvto` y el rótulo «Pagar Renovación» están
+registrados en [PLANTILLAS_YCLOUD_FASE_C.md](PLANTILLAS_YCLOUD_FASE_C.md).
+Las variables literales `{{plan}}` y `{{fvto}}` están confirmadas y el cliente
+admite parámetros nombrados. Falta la URL exacta del botón antes de cargar
+un contrato operativo para el dispatcher.
+
 ## Contrato implementado
 
 - `src/subscriptions/mercado-pago-client.ts` crea preferencias mediante

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { PrismaClient } from '../../src/generated/prisma/client.js';
 import { NotificationDispatcher } from '../../src/notifications/notification-dispatcher.js';
-import { parseTemplateBindings, buildSubscriptionTemplate } from '../../src/notifications/subscription-template.js';
+import { parseTemplateBindings, buildSubscriptionTemplate, confirmedSubscriptionBodyBindings } from '../../src/notifications/subscription-template.js';
 import { YCloudHttpClient, YCloudSendError } from '../../src/notifications/ycloud-client.js';
 
 // Contrato de fixture: no representa los parámetros aún pendientes de YCloud.
@@ -14,7 +14,7 @@ const bindings = parseTemplateBindings(JSON.stringify({
 const now = new Date('2030-01-01T12:00:00Z');
 
 function fixture(options: { recipientTenantMismatch?: boolean; persistenceFailure?: boolean; attempt?: number;
-  expiredLease?: boolean; paymentLink?: boolean; wrongTokenOrder?: boolean; expiredLink?: boolean } = {}) {
+  expiredLease?: boolean; paymentLink?: boolean; confirmedPayment?: boolean; wrongTokenOrder?: boolean; expiredLink?: boolean } = {}) {
   let reserved = options.expiredLease ?? false;
   const updates: Array<Record<string, unknown>> = [];
   const prisma = {
@@ -32,10 +32,13 @@ function fixture(options: { recipientTenantMismatch?: boolean; persistenceFailur
       },
     },
     notification_intents: { findUnique: async () => ({ id: 'intent-id', tenant_id: 'tenant-id',
-      recipient_membership_id: 'membership-id', intent_type: options.paymentLink ? 'SUBSCRIPTION_PAYMENT_LINK' : 'SUBSCRIPTION_RENEWAL_REMINDER',
-      payload: options.paymentLink ? { orderId: 'order-id', paymentLinkToken: 'x'.repeat(43) } : { endsAt: '2030-01-06T12:00:00Z' } }) },
+      recipient_membership_id: 'membership-id', intent_type: options.paymentLink ? 'SUBSCRIPTION_PAYMENT_LINK'
+        : options.confirmedPayment ? 'SUBSCRIPTION_PAYMENT_CONFIRMED' : 'SUBSCRIPTION_RENEWAL_REMINDER',
+      payload: options.paymentLink ? { orderId: 'order-id', paymentLinkToken: 'x'.repeat(43) }
+        : options.confirmedPayment ? { orderId: 'order-id', planCode: 'BASIC', endsAt: '2030-02-06T12:00:00Z' }
+        : { planCode: 'BASIC', endsAt: '2030-01-06T12:00:00Z' } }) },
     subscription_orders: { findFirst: async ({ where }: { where: Record<string, unknown> }) => {
-      assert.equal(where.tenant_id, 'tenant-id'); assert.equal(where.status, 'PENDING');
+      assert.equal(where.tenant_id, 'tenant-id'); assert.equal(where.status, options.confirmedPayment ? 'PAID' : 'PENDING');
       return { id: 'order-id', expires_at: new Date(options.expiredLink ? '2029-12-31' : '2030-01-02'),
         plan_code: 'BASIC', amount: 28000 };
     } },
@@ -67,6 +70,54 @@ test('un lease vencido queda ambiguo y no vuelve a enviarse', async () => {
     assert.fail('No debe reenviar una reserva vencida');
   } }, '+5492646276709', bindings, () => now).dispatch(now);
   assert.equal(result.unknown, 1);
+});
+
+// El prefijo del botón es sólo fixture: su URL real sigue pendiente.
+const namedBindings = parseTemplateBindings(JSON.stringify({ ...confirmedSubscriptionBodyBindings,
+  SUBSCRIPTION_PAYMENT_LINK: { ...confirmedSubscriptionBodyBindings.SUBSCRIPTION_PAYMENT_LINK, button: { index: 0, prefix: '' } },
+}));
+
+test('envía plan/fvto por nombre; reminder usa fecha vigente y confirmed la renovada', async () => {
+  for (const confirmedPayment of [false, true]) {
+    const { prisma } = fixture({ confirmedPayment });
+    let calls = 0;
+    const client = new YCloudHttpClient('fixture-key', async (_url, options) => {
+      calls++;
+      const request = JSON.parse(String(options?.body));
+      assert.equal(request.template.language.code, 'es_AR');
+      assert.equal(request.template.name, confirmedPayment ? 'subscription_payment_confirmed' : 'subscription_renewal_reminder');
+      const params = request.template.components[0].parameters;
+      assert.deepEqual(params[0], { type: 'text', text: 'Básico', parameter_name: 'plan' });
+      assert.equal(params[1].parameter_name, 'fvto');
+      assert.equal(params[1].text, confirmedPayment ? '6/2/30' : '6/1/30');
+      return new Response(JSON.stringify({ id: 'provider-id' }), { status: 200 });
+    });
+    const summary = await new NotificationDispatcher(prisma, client, '+5492646276709', namedBindings, () => now).dispatch(now);
+    assert.equal(summary.accepted, 1); assert.equal(calls, 1);
+  }
+});
+
+test('link envía sólo plan por nombre y conserva token de botón separado sin parameter_name', async () => {
+  const { prisma } = fixture({ paymentLink: true });
+  const summary = await new NotificationDispatcher(prisma, { enqueueTemplate: async (message) => {
+    assert.deepEqual(message.components[0]?.parameters, [{ type: 'text', text: 'Básico', parameter_name: 'plan' }]);
+    assert.deepEqual(message.components[1]?.parameters, [{ type: 'text', text: 'x'.repeat(43) }]);
+    return { messageId: 'provider-id' };
+  } }, '+5492646276709', namedBindings, () => now).dispatch(now);
+  assert.equal(summary.accepted, 1);
+});
+
+test('no activa cuerpos sin botón y rechaza mezcla, nombres duplicados o inválidos', () => {
+  assert.throws(() => parseTemplateBindings(JSON.stringify(confirmedSubscriptionBodyBindings)));
+  for (const body of [
+    ['planName', { value: 'endsAt', parameterName: 'fvto' }],
+    [{ value: 'planName', parameterName: 'plan' }, { value: 'endsAt', parameterName: 'plan' }],
+    [{ value: 'planName', parameterName: '{{plan}}' }],
+    [{ value: 'planName', parameterName: 'Plan' }],
+    [{ value: 'unavailable', parameterName: 'plan' }], [null],
+  ]) assert.throws(() => parseTemplateBindings(JSON.stringify({ ...namedBindings,
+    SUBSCRIPTION_RENEWAL_REMINDER: { languageCode: 'es_AR', body },
+  })));
 });
 
 test('bloquea enlaces vencidos o tokens pertenecientes a otra orden', async () => {

@@ -31,7 +31,13 @@ PostgreSQL solicitará la contraseña de forma interactiva. Para una instalació
 
 ## AWS posterior
 
-En AWS la misma migración debe ejecutarse desde el pipeline de despliegue contra Aurora PostgreSQL, usando un secreto de Secrets Manager y un job controlado. Nunca debe ejecutarse al iniciar una Lambda y nunca se debe almacenar la URL o contraseña de producción en este repositorio.
+El MVP tiene un runner manual por Data API. `npm run db:migrations:plan` valida
+los archivos localmente sin conectarse. La aplicación posterior, con destino
+dev explícito y recursos/costos aprobados, usa ARNs y recibos transaccionales;
+ver [MIGRACIONES_DATA_API.md](../docs/MIGRACIONES_DATA_API.md).
+Nunca debe ejecutarse al iniciar una Lambda ni almacenar la URL o contraseña
+de producción en este repositorio. No usarlo para reaplicar a la base local
+migrada con psql: no inventa recibos para esquemas existentes.
 
 ## Retención
 

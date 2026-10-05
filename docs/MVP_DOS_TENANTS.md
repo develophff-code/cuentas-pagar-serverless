@@ -1,6 +1,6 @@
 # MVP con dos tenants testigos
 
-Actualización de alcance: 2026-10-04. El dueño quiere mostrar un MVP a los dos
+Actualización de alcance: 2026-10-05. El dueño quiere mostrar un MVP a los dos
 tenants relevados y necesita un presupuesto más económico. La propuesta de
 Aurora permanente + RDS Proxy + NAT **no está aprobada para este MVP**.
 No se desplegaron recursos, no se cambiaron secretos y no se hicieron commits.
@@ -75,7 +75,9 @@ El dispatcher se activa por SQS desde el ciclo diario y la conciliación de
 pagos. Programa reintentos puntuales y continuación de lotes; no consulta la
 base cada minuto. Los mensajes de activación no contienen destinatarios ni
 tokens. Las Lambdas tienen permisos sobre los ARNs de la base y sus secretos.
-Queda pendiente el runner de migraciones por Data API. La pausa exige reintentos:
+El [runner de migraciones por Data API](MIGRACIONES_DATA_API.md) ya está preparado
+con plan local y recibos transaccionales; falta ejecutarlo y verificarlo contra
+Aurora después de aprobar el despliegue. La pausa exige reintentos:
 AWS indica una reanudación típica de aproximadamente 15 segundos, y a veces más.
 Para demostrar sin espera inicial, abrir/probar la aplicación antes de la reunión;
 esa preparación también genera consumo normal.

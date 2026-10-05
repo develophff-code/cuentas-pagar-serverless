@@ -1,6 +1,6 @@
 # Preparación del backend de Fase C
 
-Estado al 2026-10-04: implementación local, **sin despliegue ni cambios DNS**.
+Estado al 2026-10-05: implementación local, **sin despliegue ni cambios DNS**.
 Se conserva `develop`; los commits y el push corresponden al dueño.
 
 **Cambio de alcance del dueño:** el primer despliegue será un MVP para dos
@@ -34,7 +34,8 @@ su estimación y las adaptaciones pendientes están en
   sin Proxy/NAT. SQS activa el dispatcher por pagos y ciclo diario; programa
   reintentos acotados y continuación de lotes. No hay polling cada minuto.
   Las transacciones y conversiones SQL tienen pruebas locales; su validación
-  contra Aurora y el runner de migraciones siguen pendientes.
+  contra Aurora sigue pendiente. El runner manual de migraciones incluye plan
+  offline, recibos y bloqueo concurrente; todavía no se ejecutó en AWS.
 - La stack optativa `CuentasPagarBusiness-dev` agrega Cognito para `/v1`, rutas
   públicas de pago/webhook, jobs inicialmente **desactivados**, alarmas de errores
   y, si se indica dominio, CloudFront sin caché y ACM validado por DNS.
@@ -51,8 +52,10 @@ del workspace. No se modifica la infraestructura del ingress YCloud anterior.
 
 ## Contrato de plantillas pendiente
 
-El idioma confirmado es Spanish (ARG), código `es_AR`. Falta confirmar cuerpo,
-cantidad/orden de variables y URL del botón de cada plantilla. El dispatcher
+El idioma confirmado es Spanish (ARG), código `es_AR`. Los cuerpos y el mapeo
+de negocio fueron informados por el dueño: ver [PLANTILLAS_YCLOUD_FASE_C.md](PLANTILLAS_YCLOUD_FASE_C.md).
+Las variables nombradas `plan` y `fvto` están confirmadas y soportadas por el
+cliente. Falta la URL exacta del botón «Pagar Renovación». El dispatcher
 exige `YCLOUD_SUBSCRIPTION_TEMPLATE_BINDINGS`; no inventa parámetros ni envía
 con configuración ausente. Los contratos de tests son fixtures.
 
@@ -63,7 +66,11 @@ con configuración ausente. Los contratos de tests son fixtures.
 | `SUBSCRIPTION_PAYMENT_CONFIRMED` | `subscription_payment_confirmed` |
 
 Cada entrada contiene `languageCode` y `body`, una lista ordenada de valores
-`businessName`, `planName`, `endsAt`, `amount` o `expiresAt`. El enlace exige
+`businessName`, `planName`, `endsAt`, `amount` o `expiresAt` para contratos
+posicionales. Para los cuerpos nombrados confirmados, usar objetos como
+`{ value: "planName", parameterName: "plan" }` y
+`{ value: "endsAt", parameterName: "fvto" }`; no mezclar formatos en un cuerpo.
+Reminder y confirmed requieren ambos; payment_link sólo `plan`. El enlace exige
 `button: { index: 0, prefix: "" }` si la URL aprobada es
 `https://apagar.averiqsj.app/p/{{1}}`; si es
 `https://apagar.averiqsj.app/{{1}}`, el prefijo es `p/`.
@@ -126,8 +133,8 @@ No usar `cdk deploy --all`. Antes del despliegue:
 2. Revisar el diff remoto con el perfil autorizado, sin consultar valores de
    secretos; desplegar datos y negocio con jobs desactivados.
 3. Aplicar una sola vez `001`–`008`, en orden, desde un runner controlado con
-   acceso por Data API en el MVP. Ese runner todavía no está implementado; no ejecutar
-   migraciones al inicializar Lambdas.
+   acceso por Data API en el MVP. Usar el [runner documentado](MIGRACIONES_DATA_API.md)
+   después de la aprobación; no ejecutar migraciones al inicializar Lambdas.
 4. Validar ACM mediante el CNAME entregado por AWS en Hostinger y luego apuntar
    `.app` a CloudFront. La stack puede quedar esperando validación ACM.
 5. Cargar credenciales de prueba de Mercado Pago directamente en Secrets Manager,

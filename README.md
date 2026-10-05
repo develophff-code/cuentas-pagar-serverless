@@ -39,6 +39,8 @@ todavía no está desplegado. El repositorio cuenta con:
   Lambdas fuera de VPC y SQS para avisos y reintentos, sin polling cada minuto.
 - Adaptador Prisma/Data API con parámetros SQL, decimales, fechas UTC y
   transacciones; pruebas locales con transporte simulado y cliente Prisma real.
+- Runner manual de migraciones por Data API con plan local, huellas SHA-256,
+  bloqueo concurrente y recibos transaccionales; todavía no ejecutado en AWS.
 - Convenciones de aislamiento para `dev`, `staging` y `prod`.
 - Cliente server-side de Checkout Pro y validación HMAC de webhooks de Mercado
   Pago, con pruebas unitarias y sin secretos versionados.
@@ -54,8 +56,11 @@ todavía no está desplegado. El repositorio cuenta con:
 
 Las plantillas Utility `subscription_renewal_reminder`,
 `subscription_payment_link_v2` y `subscription_payment_confirmed` ya están
-activas en YCloud, en Spanish (ARG), código `es_AR`. Falta confirmar sus cuerpos,
-variables y botón antes de configurar y activar el dispatcher. El emisor es
+activas en YCloud, en Spanish (ARG), código `es_AR`. Los textos y el mapeo de
+`plan`/`fvto` ya están registrados y el cliente admite esas variables por nombre.
+En el recordatorio, `fvto` es el vencimiento vigente; en la confirmación, es el
+nuevo vencimiento después de renovar. Falta la URL aprobada del botón
+«Pagar Renovación» antes de activar el dispatcher. El emisor es
 `+5492646276709`; la API key se guarda exclusivamente en Secrets Manager.
 
 Todavía faltan el despliegue del backend de negocio, el frontend, la publicación
@@ -75,6 +80,8 @@ existente de YCloud permanece sin cambios hasta la migración aprobada.
 - [Integración segura de Mercado Pago — Fase C](docs/MERCADO_PAGO_FASE_C.md)
 - [Backend y condiciones de despliegue de Fase C](docs/DESPLIEGUE_FASE_C.md)
 - [MVP de dos tenants y presupuesto AWS de USD 20/mes](docs/MVP_DOS_TENANTS.md)
+- [Runner de migraciones por Data API](docs/MIGRACIONES_DATA_API.md)
+- [Textos y contrato de plantillas YCloud](docs/PLANTILLAS_YCLOUD_FASE_C.md)
 
 ## Requisitos locales
 
@@ -97,6 +104,10 @@ npm run cdk:synth
 `npm run lambda:package` genera el artefacto Lambda con código compilado y
 dependencias de producción. `npm run cdk:synth` lo prepara antes de sintetizar;
 ninguno de esos comandos despliega infraestructura.
+
+`npm run db:migrations:plan` valida las ocho migraciones y muestra su huella
+SHA-256 sin consultar AWS. La aplicación por Data API requiere un destino dev
+explícito y recursos/costos aprobados; ver la documentación del runner.
 
 ## Base de datos local
 
@@ -149,9 +160,9 @@ validada.
 
 ## Próximo paso
 
-Preparar el runner de migraciones para Data API y completar la validación
-de aislamiento, idempotencia y transacciones contra Aurora. Revisar el costo
-total de los dos tenants testigos y pedir aprobación antes de desplegar.
+Completar la validación del runner, aislamiento, idempotencia y transacciones
+contra Aurora. Revisar el costo total de los dos tenants testigos y pedir
+aprobación antes de desplegar.
 
 Después de aprobar el despliegue, publicar `/p/{token}` bajo
 `apagar.averiqsj.app`, configurar el webhook Mercado Pago, completar el contrato

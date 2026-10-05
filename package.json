@@ -8,12 +8,14 @@
   },
   "scripts": {
     "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
-    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js dist/packages/domain/src/payment-grid-policy.test.js dist/packages/domain/src/subscription-lifecycle-policy.test.js dist/infra/lib/environment.test.js dist/infra/lib/foundation-stack.test.js dist/infra/lib/application-stack.test.js dist/infra/lib/data-stack.test.js dist/tests/api/http-handler.test.js dist/tests/persistence/tenant-authorization-service.test.js dist/tests/webhooks/ycloud-signature.test.js dist/tests/webhooks/ycloud-event.test.js dist/tests/webhooks/mercado-pago-webhook-handler.test.js dist/tests/webhooks/resilience.test.js dist/tests/subscriptions/mercado-pago-signature.test.js dist/tests/subscriptions/mercado-pago-client.test.js dist/tests/subscriptions/payment-link-redirect-handler.test.js dist/tests/notifications/notification-dispatcher.test.js dist/infra/lib/business-stack.test.js dist/infra/lib/infrastructure-profile.test.js dist/tests/persistence/data-api-adapter.test.js dist/tests/notifications/dispatch-queue.test.js",
+    "test": "node ./node_modules/typescript/bin/tsc && node --test dist/packages/domain/src/payment-policy.test.js dist/packages/domain/src/plan-policy.test.js dist/packages/domain/src/payment-grid-policy.test.js dist/packages/domain/src/subscription-lifecycle-policy.test.js dist/infra/lib/environment.test.js dist/infra/lib/foundation-stack.test.js dist/infra/lib/application-stack.test.js dist/infra/lib/data-stack.test.js dist/tests/api/http-handler.test.js dist/tests/persistence/tenant-authorization-service.test.js dist/tests/webhooks/ycloud-signature.test.js dist/tests/webhooks/ycloud-event.test.js dist/tests/webhooks/mercado-pago-webhook-handler.test.js dist/tests/webhooks/resilience.test.js dist/tests/subscriptions/mercado-pago-signature.test.js dist/tests/subscriptions/mercado-pago-client.test.js dist/tests/subscriptions/payment-link-redirect-handler.test.js dist/tests/notifications/notification-dispatcher.test.js dist/infra/lib/business-stack.test.js dist/infra/lib/infrastructure-profile.test.js dist/tests/persistence/data-api-adapter.test.js dist/tests/notifications/dispatch-queue.test.js dist/tests/persistence/data-api-migrations.test.js",
     "test:integration": "node ./node_modules/typescript/bin/tsc && node --test dist/tests/integration/postgres-idempotency.test.js dist/tests/integration/notification-dispatcher.test.js",
     "build": "node ./node_modules/typescript/bin/tsc",
     "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
     "lambda:package": "npm run prisma:generate && npm run build && node scripts/package-lambda.cjs",
-    "cdk:synth": "npm run lambda:package && node ./node_modules/aws-cdk/bin/cdk synth"
+    "cdk:synth": "npm run lambda:package && node ./node_modules/aws-cdk/bin/cdk synth",
+    "db:migrations:plan": "npm run build && node dist/scripts/migrations/data-api-cli.js --plan",
+    "db:migrations:apply": "npm run build && node dist/scripts/migrations/data-api-cli.js --apply"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -7,11 +7,32 @@ export const subscriptionTemplateNames = {
 } as const;
 export type SubscriptionIntentType = keyof typeof subscriptionTemplateNames;
 export type TemplateValue = 'businessName' | 'planName' | 'endsAt' | 'amount' | 'expiresAt';
+export type TemplateBodyParameter = TemplateValue | { value: TemplateValue; parameterName: string };
 export type TemplateBindings = Record<SubscriptionIntentType, {
   languageCode: string;
-  body: TemplateValue[];
+  body: TemplateBodyParameter[];
   button?: { index: 0; prefix: string };
 }>;
+
+/** Cuerpos confirmados por el dueño; completar el botón antes de activar. */
+export const confirmedSubscriptionBodyBindings: Record<SubscriptionIntentType, Pick<TemplateBindings[SubscriptionIntentType], 'languageCode' | 'body'>> = {
+  SUBSCRIPTION_RENEWAL_REMINDER: { languageCode: 'es_AR', body: [
+    { value: 'planName', parameterName: 'plan' }, { value: 'endsAt', parameterName: 'fvto' },
+  ] },
+  SUBSCRIPTION_PAYMENT_LINK: { languageCode: 'es_AR', body: [{ value: 'planName', parameterName: 'plan' }] },
+  SUBSCRIPTION_PAYMENT_CONFIRMED: { languageCode: 'es_AR', body: [
+    { value: 'planName', parameterName: 'plan' }, { value: 'endsAt', parameterName: 'fvto' },
+  ] },
+};
+
+function validBodyParameter(parameter: unknown): parameter is TemplateBodyParameter {
+  const allowed = ['businessName', 'planName', 'endsAt', 'amount', 'expiresAt'];
+  if (typeof parameter === 'string') return allowed.includes(parameter);
+  if (typeof parameter !== 'object' || parameter === null || Array.isArray(parameter)) return false;
+  const named = parameter as Record<string, unknown>;
+  return typeof named.value === 'string' && allowed.includes(named.value)
+    && typeof named.parameterName === 'string' && /^[a-z_]+$/.test(named.parameterName);
+}
 
 /** Configuración pública del contrato de plantillas; no contiene credenciales. */
 export function parseTemplateBindings(raw: string | undefined): TemplateBindings {
@@ -20,14 +41,16 @@ export function parseTemplateBindings(raw: string | undefined): TemplateBindings
   try { parsed = JSON.parse(raw); } catch { throw new Error('Contrato de plantillas inválido.'); }
   if (typeof parsed !== 'object' || parsed === null) throw new Error('Contrato de plantillas inválido.');
   const bindings = parsed as TemplateBindings;
-  const allowed = ['businessName', 'planName', 'endsAt', 'amount', 'expiresAt'];
   for (const type of Object.keys(subscriptionTemplateNames) as SubscriptionIntentType[]) {
     const binding = bindings[type];
     if (!binding || typeof binding.languageCode !== 'string' || !/^[a-z]{2}(?:_[A-Z]{2})?$/.test(binding.languageCode)
-      || !Array.isArray(binding.body) || !binding.body.every((value) => allowed.includes(value))
+      || !Array.isArray(binding.body) || !binding.body.every(validBodyParameter)
       || (type === 'SUBSCRIPTION_PAYMENT_LINK'
         ? !binding.button || binding.button.index !== 0 || !['', 'p/'].includes(binding.button.prefix)
         : binding.button !== undefined)) throw new Error('Contrato de plantillas inválido.');
+    const named = binding.body.filter((value) => typeof value !== 'string');
+    if ((named.length && named.length !== binding.body.length)
+      || new Set(named.map((value) => value.parameterName)).size !== named.length) throw new Error('Contrato de plantillas inválido.');
   }
   return bindings;
 }
@@ -41,10 +64,12 @@ export function buildSubscriptionTemplate(input: {
   paymentLinkToken?: string;
 }, bindings: TemplateBindings): YCloudTemplateMessage {
   const binding = bindings[input.type];
-  const parameters = binding.body.map((key) => {
+  const parameters = binding.body.map((parameter) => {
+    const key = typeof parameter === 'string' ? parameter : parameter.value;
     const text = input.values[key];
     if (!text) throw new Error('TEMPLATE_VALUE_MISSING');
-    return { type: 'text' as const, text };
+    return { type: 'text' as const, text,
+      ...(typeof parameter === 'string' ? {} : { parameter_name: parameter.parameterName }) };
   });
   const components: YCloudTemplateMessage['components'] = parameters.length ? [{ type: 'body', parameters }] : [];
   if (binding.button) {
