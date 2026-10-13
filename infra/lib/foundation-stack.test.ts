@@ -13,7 +13,10 @@ test('dev incluye cifrado, secreto de runtime y presupuesto mensual', () => {
   template.resourceCountIs('AWS::SecretsManager::Secret', 1);
   template.resourceCountIs('AWS::Budgets::Budget', 1);
   template.hasResourceProperties('AWS::Budgets::Budget', {
-    Budget: { BudgetLimit: { Amount: 20, Unit: 'USD' }, TimeUnit: 'MONTHLY' },
+    Budget: { BudgetLimit: { Amount: 20, Unit: 'USD' }, TimeUnit: 'MONTHLY', FilterExpression: { And: [
+      { Tags: { Key: 'Application', Values: ['cuentas-pagar'], MatchOptions: ['EQUALS'] } },
+      { Tags: { Key: 'Environment', Values: ['dev'], MatchOptions: ['EQUALS'] } },
+    ] } },
   });
   assert.ok(true);
 });

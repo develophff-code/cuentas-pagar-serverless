@@ -1,13 +1,15 @@
 # MVP con dos tenants testigos
 
-Actualización de alcance: 2026-10-05. El dueño quiere mostrar un MVP a los dos
+Actualización de alcance: 2026-10-13. El dueño quiere mostrar un MVP a los dos
 tenants relevados y necesita un presupuesto más económico. La propuesta de
 Aurora permanente + RDS Proxy + NAT **no está aprobada para este MVP**.
-No se desplegaron recursos, no se cambiaron secretos y no se hicieron commits.
+Esta preparación no desplegó recursos ni cambió secretos. Los commits y el
+push los realiza manualmente el dueño.
 
 **Decisión confirmada por el dueño:** objetivo de **USD 20/mes en AWS**, para
-el conjunto del ambiente, incluidos los recursos existentes. YCloud/WhatsApp
-queda fuera de ese monto. Confirmar este objetivo no autoriza un despliegue:
+el proyecto dev, incluida su fundación existente. El 2026-10-13 confirmó que
+el servicio legado de Ohio se presupuesta aparte. YCloud/WhatsApp queda fuera
+de ese monto. Confirmar este objetivo no autoriza un despliegue:
 se revisará la propuesta implementada y su costo antes de crear recursos.
 
 ## Propuesta recomendada para evaluar
@@ -30,6 +32,13 @@ Mantener AWS, PostgreSQL y las reglas de dominio existentes, con:
 
 ## Estimación preliminar, no cotización ni tope de gasto
 
+La [revisión de costos del 2026-10-13](COSTOS_MVP_FASE_C.md) suma una base de
+planificación para secretos, KMS, alarmas, almacenamiento y consumo variable.
+Con uso liviano, el escenario de dos horas/día a 1 ACU da USD 13,20/mes para
+el alcance del proyecto. Los cargos del legado de Ohio quedan fuera por la
+decisión confirmada del dueño; no se modifica ese servicio.
+No es una cotización final ni autorización de despliegue.
+
 La cantidad de tenants no determina por sí sola el costo: cuentan las horas
 activas y la capacidad media. Con Aurora Standard a USD 0,12/ACU-h en
 `us-east-1`, para 30 días:
@@ -48,7 +57,8 @@ no se factura cómputo, pero siguen almacenamiento y otros recursos.
 El objetivo confirmado es **USD 20/mes AWS**. Los escenarios anteriores deben
 evaluarse junto con el resto de cargos para comprobar si caben en ese monto.
 Sumar almacenamiento, I/O, KMS, secretos, logs/alarmas, solicitudes y transferencias.
-Los recursos ya existentes también cuentan. No asumir créditos ni free tier.
+Los recursos existentes del proyecto también cuentan; el legado se presupuesta
+aparte. No asumir créditos ni free tier.
 YCloud/WhatsApp se cotiza por separado; el presupuesto AWS no los cubre.
 Con uso prolongado o consultas continuas, el objetivo puede excederse.
 
@@ -91,7 +101,7 @@ provisionamiento ni aumenta el presupuesto de AWS.
 
 El punto de entrada CDK usa por defecto `infrastructureProfile=mvp`. Sin
 `enableBusiness=true` sólo sintetiza fundación e ingress existente. Con esa
-opción incorpora `CuentasPagarMvpData-dev` y negocio: Aurora 16.6 de 0 a 1 ACU,
+opción incorpora `CuentasPagarMvpData-dev` y negocio: Aurora 16.15 de 0 a 1 ACU,
 pausa de cinco minutos, Data API, S3 privado y Lambdas fuera de VPC. No agrega
 Proxy, NAT, endpoints de interfaz ni una nueva clave KMS de costo fijo.
 Los jobs y el consumidor SQS quedan desactivados por defecto. No representa

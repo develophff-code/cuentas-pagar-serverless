@@ -41,4 +41,10 @@ Antes de un `cdk deploy` se deben cumplir todas estas condiciones:
 
 `dev` tiene presupuesto mensual de USD 20, con alerta de gasto real al 80% y de proyección al 100%. Es una alarma, no un mecanismo que corta automáticamente el gasto.
 
+El 2026-10-13 el dueño confirmó que esos USD 20 corresponden a Cuentas a Pagar;
+el legado de Ohio se presupuesta aparte. CDK prepara filtros por `Application`
+y `Environment`; las claves están inactivas en Billing y el presupuesto remoto
+todavía mide toda la cuenta. Activar/verificar la atribución y aplicar el cambio
+sólo como parte de la operación aprobada. Ver [COSTOS_MVP_FASE_C.md](COSTOS_MVP_FASE_C.md).
+
 Antes de crear Aurora, NAT Gateway, RDS Proxy, WAF o recursos de carga se revisará el costo estimado y se ajustará el presupuesto si corresponde.

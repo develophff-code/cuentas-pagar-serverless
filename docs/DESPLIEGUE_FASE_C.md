@@ -1,6 +1,6 @@
 # Preparación del backend de Fase C
 
-Estado al 2026-10-05: implementación local, **sin despliegue ni cambios DNS**.
+Estado al 2026-10-13: implementación local, **sin despliegue ni cambios DNS**.
 Se conserva `develop`; los commits y el push corresponden al dueño.
 
 **Cambio de alcance del dueño:** el primer despliegue será un MVP para dos
@@ -9,6 +9,11 @@ de este documento no está aprobada para ese MVP. El presupuesto objetivo
 confirmado es USD 20/mes AWS. La alternativa recomendada,
 su estimación y las adaptaciones pendientes están en
 [MVP_DOS_TENANTS.md](MVP_DOS_TENANTS.md).
+
+La revisión del 2026-10-13 está en [COSTOS_MVP_FASE_C.md](COSTOS_MVP_FASE_C.md).
+El dueño confirmó USD 20 para el proyecto y legado de Ohio aparte. El filtro
+de presupuesto y Aurora 16.15 están preparados localmente; aplicar cambios
+remotos y crear la base requieren aprobación explícita.
 
 ## Componentes preparados
 
@@ -129,7 +134,7 @@ node ./node_modules/aws-cdk/bin/cdk synth CuentasPagarBusiness-dev --context inf
 No usar `cdk deploy --all`. Antes del despliegue:
 
 1. Confirmar las plantillas y aprobar recursos/costos. Confirmar disponibilidad
-   regional de Aurora 16.6 y cotización final con AWS Pricing Calculator.
+   regional de Aurora 16.15 y cotización final con AWS Pricing Calculator.
 2. Revisar el diff remoto con el perfil autorizado, sin consultar valores de
    secretos; desplegar datos y negocio con jobs desactivados.
 3. Aplicar una sola vez `001`–`008`, en orden, desde un runner controlado con

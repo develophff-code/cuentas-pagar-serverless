@@ -65,6 +65,12 @@ export class FoundationStack extends cdk.Stack {
           budgetLimit: { amount: DEV_MONTHLY_BUDGET_USD, unit: 'USD' },
           budgetType: 'COST',
           timeUnit: 'MONTHLY',
+          // Decisión del dueño: USD 20 para este proyecto dev; legado aparte.
+          // Activar ambas claves en Billing antes de desplegar este filtro.
+          filterExpression: { and: [
+            { tags: { key: 'Application', values: ['cuentas-pagar'], matchOptions: ['EQUALS'] } },
+            { tags: { key: 'Environment', values: [props.stage], matchOptions: ['EQUALS'] } },
+          ] },
         },
         notificationsWithSubscribers: [
           {

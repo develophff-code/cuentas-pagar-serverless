@@ -17,7 +17,8 @@ La solución permite administrar proveedores, comprobantes, facturas y pagos com
 La **Fase A está cerrada**, la Fase B tiene su backend implementado en código
 y la **Fase C está en desarrollo**. El primer despliegue se orienta a un MVP
 con **dos tenants testigos** y un presupuesto objetivo de **USD 20/mes en AWS**,
-incluidos los recursos existentes y con YCloud/WhatsApp por separado.
+incluida la fundación del proyecto. El legado de Ohio y YCloud/WhatsApp se
+presupuestan por separado, según la decisión del 2026-10-13.
 El acceso por Data API, la pausa automática de Aurora y el despacho por SQS
 están preparados en código; falta validarlos contra AWS y el backend de negocio
 todavía no está desplegado. El repositorio cuenta con:
@@ -80,6 +81,7 @@ existente de YCloud permanece sin cambios hasta la migración aprobada.
 - [Integración segura de Mercado Pago — Fase C](docs/MERCADO_PAGO_FASE_C.md)
 - [Backend y condiciones de despliegue de Fase C](docs/DESPLIEGUE_FASE_C.md)
 - [MVP de dos tenants y presupuesto AWS de USD 20/mes](docs/MVP_DOS_TENANTS.md)
+- [Revisión de costos y escenarios del MVP](docs/COSTOS_MVP_FASE_C.md)
 - [Runner de migraciones por Data API](docs/MIGRACIONES_DATA_API.md)
 - [Textos y contrato de plantillas YCloud](docs/PLANTILLAS_YCLOUD_FASE_C.md)
 
@@ -163,6 +165,15 @@ validada.
 Completar la validación del runner, aislamiento, idempotencia y transacciones
 contra Aurora. Revisar el costo total de los dos tenants testigos y pedir
 aprobación antes de desplegar.
+
+La revisión de costos del 2026-10-13 está documentada con escenarios de uso.
+La consulta de la cuenta mostró USD 34,14 de consumo en septiembre antes de
+créditos, con un servicio legado activo en Ohio. El dueño confirmó USD 20 para
+Cuentas a Pagar y legado aparte. CDK prepara el filtro de presupuesto por
+`Application=cuentas-pagar` y `Environment=dev`; las claves de costo aún están
+inactivas y el presupuesto remoto sigue abarcando la cuenta. Todavía no hay
+autorización de despliegue. Aurora estándar 16.6 ya no aparece disponible para creación: el
+perfil MVP local prepara 16.15, con disponibilidad y capacidad mínima 0 verificadas.
 
 Después de aprobar el despliegue, publicar `/p/{token}` bajo
 `apagar.averiqsj.app`, configurar el webhook Mercado Pago, completar el contrato

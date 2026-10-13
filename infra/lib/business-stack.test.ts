@@ -46,6 +46,7 @@ test('MVP usa Data API, pausa Aurora y despierta dispatcher por SQS sin polling'
   const database = Template.fromStack(data);
   for (const type of ['AWS::RDS::DBProxy', 'AWS::EC2::NatGateway', 'AWS::EC2::VPCEndpoint', 'AWS::KMS::Key']) database.resourceCountIs(type, 0);
   database.hasResourceProperties('AWS::RDS::DBCluster', {
+    Engine: 'aurora-postgresql', EngineVersion: '16.15',
     EnableHttpEndpoint: true, StorageEncrypted: true, DeletionProtection: true, BackupRetentionPeriod: 7,
     ServerlessV2ScalingConfiguration: { MinCapacity: 0, MaxCapacity: 1, SecondsUntilAutoPause: 300 },
   });

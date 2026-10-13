@@ -29,7 +29,9 @@ export class MvpDataStack extends cdk.Stack {
       username: 'app_owner', dbname: 'cuentas_pagar', secretName: `cuentas-pagar/${props.stage}/mvp-database-credentials`,
     });
     this.databaseSecret = secret as unknown as secretsmanager.ISecret;
-    const engine = rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.VER_16_6 });
+    // Versión estándar disponible en us-east-1, verificada el 2026-10-13.
+    // CDK aún no publica la constante 16.15; fijar versión/familia explícitas.
+    const engine = rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.of('16.15', '16') });
     const database = new rds.DatabaseCluster(this, 'AuroraPostgres', {
       engine, writer: rds.ClusterInstance.serverlessV2('writer'), vpc: dataVpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED }, securityGroups: [securityGroup],
