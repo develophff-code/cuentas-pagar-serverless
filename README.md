@@ -19,9 +19,17 @@ y la **Fase C está en desarrollo**. El primer despliegue se orienta a un MVP
 con **dos tenants testigos** y un presupuesto objetivo de **USD 20/mes en AWS**,
 incluida la fundación del proyecto. El legado de Ohio y YCloud/WhatsApp se
 presupuestan por separado, según la decisión del 2026-10-13.
-El acceso por Data API, la pausa automática de Aurora y el despacho por SQS
-están preparados en código; falta validarlos contra AWS y el backend de negocio
-todavía no está desplegado. El repositorio cuenta con:
+**Etapa 1 del MVP desplegada el 2026-10-14 con aprobación del dueño:**
+`CuentasPagarFoundation-dev` (presupuesto filtrado por proyecto) y
+`CuentasPagarMvpData-dev` (VPC aislada, Aurora 16.15 de 0 a 1 ACU con Data API,
+S3 privado y secreto de base; sin Proxy ni NAT). Las migraciones `001`–`008`
+se aplicaron por Data API y una segunda ejecución las reconoció como
+registradas. Las etiquetas de costo `Application` y `Environment` están
+activadas. El backend de negocio, dominios, jobs y envíos reales **no** están
+desplegados. La pausa a 0 ACU se verificó (unos 10 minutos tras la última
+actividad). Siguen pendientes las
+pruebas de aislamiento, idempotencia y transacciones contra Aurora.
+El despacho por SQS está preparado en código. El repositorio cuenta con:
 
 - Modelo de dominio y reglas para tenants, planes, membresías, proveedores, facturas y pagos.
 - Reglas de autorización: el administrador confirma pagos propuestos por `OPERATOR_PAYMENTS`; `OPERATOR_UPLOAD` no puede confirmar facturas ni pagos.

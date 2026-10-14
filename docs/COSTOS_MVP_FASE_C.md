@@ -193,9 +193,24 @@ negocio, los envíos reales y el dominio quedan para una etapa posterior.
 6. Completar la URL aprobada del botón YCloud, publicar `/p/{token}`, probar
    Mercado Pago de prueba y recién después activar avisos.
 
-No se desplegó ningún recurso ni se modificaron DNS, presupuesto o secretos en
-esta revisión. El alcance del presupuesto ya está resuelto; la aprobación de
-provisionamiento y de cambios remotos de facturación sigue pendiente.
+## Actualización 2026-10-14: etapa 1 desplegada
+
+Con aprobación explícita del dueño se activaron las etiquetas de costo
+`Application` y `Environment`, y se desplegaron `CuentasPagarFoundation-dev`
+(filtro del presupuesto) y `CuentasPagarMvpData-dev` (16 recursos, idénticos al
+diff revisado, sin Proxy, NAT ni endpoints). Aurora 16.15 quedó disponible con
+0–1 ACU, pausa de 300 s y Data API. Las migraciones `001`–`008` se aplicaron y
+una segunda ejecución las reconoció como registradas. Las etiquetas pueden
+tardar hasta 24 horas en reflejarse: un gasto 0 en el filtro no prueba bajo
+consumo. Pausa verificada el 2026-10-14: tras la última actividad (12:40), la
+capacidad bajó a 0,5 ACU a las 12:45 y a 0 ACU a las 12:50, unos 10 minutos en
+total. Pendientes: medir consumo real y probar
+aislamiento, idempotencia y transacciones. Negocio, dominios y envíos siguen
+sin desplegar y requieren una nueva aprobación.
+
+Hasta esta actualización, la revisión no había desplegado recursos. El alcance
+del presupuesto ya está resuelto; la aprobación de provisionamiento de negocio
+y de cambios remotos de facturación adicionales sigue pendiente.
 
 ## Fuentes públicas consultadas
 
