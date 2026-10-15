@@ -92,14 +92,16 @@ export class PaymentBatchService {
           ...(isRecorded
             ? { confirmed_by_user_id: actorUserId, confirmed_at: new Date() }
             : {}),
-          payment_items: {
-            create: invoices.map((invoice) => ({
-              tenant_id: request.tenantId,
-              invoice_id: invoice.id,
-              amount: invoice.amount,
-            })),
-          },
         },
+      });
+
+      await transaction.payment_items.createMany({
+        data: invoices.map((invoice) => ({
+          tenant_id: request.tenantId,
+          payment_batch_id: batch.id,
+          invoice_id: invoice.id,
+          amount: invoice.amount,
+        })),
       });
 
       await transaction.invoices.updateMany({

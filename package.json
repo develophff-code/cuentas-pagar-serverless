@@ -15,7 +15,8 @@
     "lambda:package": "npm run prisma:generate && npm run build && node scripts/package-lambda.cjs",
     "cdk:synth": "npm run lambda:package && node ./node_modules/aws-cdk/bin/cdk synth",
     "db:migrations:plan": "npm run build && node dist/scripts/migrations/data-api-cli.js --plan",
-    "db:migrations:apply": "npm run build && node dist/scripts/migrations/data-api-cli.js --apply"
+    "db:migrations:apply": "npm run build && node dist/scripts/migrations/data-api-cli.js --apply",
+    "db:validate:aurora": "npm run build && node dist/scripts/validate-aurora.js"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

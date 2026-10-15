@@ -70,14 +70,25 @@ function parameter(name: string, value: unknown, type: ArgType | undefined): Sql
     return { name, value: { stringValue: date.toISOString().replace('T', ' ').replace('Z', '') }, typeHint: 'TIMESTAMP' };
   }
   if (type?.scalarType === 'decimal') return { name, value: { stringValue: String(value) }, typeHint: 'DECIMAL' };
-  if (typeof value === 'bigint' || type?.scalarType === 'bigint') return { name, value: { stringValue: String(value) } };
+  if (typeof value === 'bigint' || type?.scalarType === 'bigint') {
+    // Un stringValue sin tipo llega a PostgreSQL como text y falla en OFFSET/LIMIT.
+    // Los enteros seguros viajan como longValue (int8); el resto conserva precisión como texto.
+    const integer = typeof value === 'bigint' ? value : /^-?\d+$/.test(String(value)) ? BigInt(String(value)) : undefined;
+    if (integer !== undefined && integer >= BigInt(Number.MIN_SAFE_INTEGER) && integer <= BigInt(Number.MAX_SAFE_INTEGER)) {
+      return { name, value: { longValue: Number(integer) } };
+    }
+    return { name, value: { stringValue: String(value) } };
+  }
   if (type?.scalarType === 'json') return { name, value: { stringValue: typeof value === 'string' ? value : JSON.stringify(value) }, typeHint: 'JSON' };
   if (typeof value === 'boolean') return { name, value: { booleanValue: value } };
   if (typeof value === 'number') {
     if (!Number.isFinite(value) || (Number.isInteger(value) && !Number.isSafeInteger(value))) throw new Error('DATA_API_NUMBER_INVALID');
     return { name, value: Number.isInteger(value) ? { longValue: value } : { doubleValue: value } };
   }
-  if (typeof value === 'string') return { name, value: { stringValue: value }, ...(type?.scalarType === 'uuid' ? { typeHint: 'UUID' as const } : {}) };
+  if (typeof value === 'string') {
+    const isUuid = type?.scalarType === 'uuid' || type?.dbType?.toUpperCase() === 'UUID';
+    return { name, value: { stringValue: value }, ...(isUuid ? { typeHint: 'UUID' as const } : {}) };
+  }
   throw new Error('DATA_API_PARAMETER_UNSUPPORTED');
 }
 

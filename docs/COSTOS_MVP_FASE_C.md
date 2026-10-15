@@ -212,6 +212,29 @@ Hasta esta actualización, la revisión no había desplegado recursos. El alcanc
 del presupuesto ya está resuelto; la aprobación de provisionamiento de negocio
 y de cambios remotos de facturación adicionales sigue pendiente.
 
+## Actualización 2026-10-15: validación contra Aurora
+
+`npm run db:validate:aurora` (manual, solo `dev`, con SSO) crea dos tenants
+sintéticos, ejecuta los chequeos y borra sus datos. Pasan 10 de 10: idempotencia
+de proveedor y de pago (reintento y 5 pagos concurrentes con la misma clave
+generan un único lote), rechazo de la misma clave con otro contenido, aislamiento
+entre tenants (A no puede pagar ni ver datos de B), pago multi-factura con
+total correcto y atomicidad (un lote con una factura inválida no paga ninguna).
+
+La validación halló tres defectos que las pruebas con transporte simulado no
+detectaban, ya corregidos con pruebas de regresión:
+
+- `bigint` seguro viajaba como texto: Aurora rechazaba `OFFSET`/`LIMIT`.
+  Ahora va como `longValue`.
+- Columnas `uuid` (`string` + `dbType: UUID` en Prisma 7) viajaban sin
+  `typeHint`: Aurora rechazaba `INSERT` y comparaciones.
+- `PaymentBatchService` creaba `payment_items` con un `create` anidado que
+  Prisma rechaza por la FK compuesta (lote, tenant): el flujo de pago no
+  funcionaba con ningún motor. Ahora usa `createMany` en la misma transacción.
+
+Con Aurora pausada, la primera operación puede fallar por la reanudación;
+reintentar. Pendiente: medir el consumo real de ACU/costo de esta corrida.
+
 ## Fuentes públicas consultadas
 
 - [Aurora: cómputo, almacenamiento, I/O, backup y Data API](https://aws.amazon.com/rds/aurora/pricing/).

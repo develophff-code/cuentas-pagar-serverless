@@ -32,6 +32,20 @@ test('Data API mantiene parámetros fuera del SQL y no pierde precisión decimal
   assert.throws(() => bindDataApiQuery({ ...query, args: [9007199254740992, 1n] }));
 });
 
+test('bigint seguro viaja como longValue (OFFSET/LIMIT en Aurora); el inseguro conserva precisión', () => {
+  const safe = bindDataApiQuery({ sql: 'SELECT 1 OFFSET $1', args: [0n], argTypes: [{ scalarType: 'bigint', arity: 'scalar' }] });
+  assert.deepEqual(safe.parameters, [{ name: 'p1', value: { longValue: 0 } }]);
+  const text = bindDataApiQuery({ sql: 'SELECT $1', args: ['15000'], argTypes: [{ scalarType: 'bigint', arity: 'scalar' }] });
+  assert.deepEqual(text.parameters, [{ name: 'p1', value: { longValue: 15000 } }]);
+});
+
+test('columnas uuid de Prisma (string + dbType UUID) llevan typeHint UUID', () => {
+  const uuid = '11111111-1111-4111-8111-111111111111';
+  const result = bindDataApiQuery({ sql: 'SELECT $1, $2', args: [uuid, 'texto'],
+    argTypes: [{ scalarType: 'string', dbType: 'UUID', arity: 'scalar' }, { scalarType: 'string', arity: 'scalar' }] as SqlQuery['argTypes'] });
+  assert.deepEqual(result.parameters.map((p) => p.typeHint), ['UUID', undefined]);
+});
+
 test('no reescribe placeholders en literales, identificadores ni comentarios anidados', () => {
   const sql = `SELECT '$1', E'escaped\\\'$2', "$2", $$ $1 $$, $tag$ $2 $tag$, $1, $1 /* $2 /* $1 */ */ -- $2\n`;
   const result = bindDataApiQuery({ sql, args: ['sensitive value'], argTypes: [{ scalarType: 'string', arity: 'scalar' }] });
