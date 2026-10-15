@@ -12,5 +12,12 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["packages/**/*.ts", "infra/**/*.ts", "src/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts"]
+  "include": [
+    "packages/domain/**/*.ts",
+    "packages/web/src/**/*.ts",
+    "infra/**/*.ts",
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "scripts/**/*.ts"
+  ]
 }
