@@ -69,6 +69,20 @@ export interface ApiDependencies {
     requestedByRole: MembershipRole;
     idempotencyKey: string;
   }, actorUserId: string): Promise<PaymentBatchResult>;
+  approvePaymentBatch?(input: {
+    tenantId: string;
+    batchId: string;
+    actorUserId: string;
+    actorRole: MembershipRole;
+    enforceDualControl?: boolean;
+  }): Promise<PaymentBatchResult>;
+  reversePaymentBatch?(input: {
+    tenantId: string;
+    batchId: string;
+    actorUserId: string;
+    actorRole: MembershipRole;
+    reason: string;
+  }): Promise<PaymentBatchResult>;
   listPaymentGrid(actor: AuthenticatedActor): Promise<PaymentGridEntry[]>;
   updatePaymentGridConfiguration(actor: AuthenticatedActor, input: {
     timezone: string;
@@ -268,6 +282,33 @@ export function createHttpHandler(dependencies: ApiDependencies) {
         const result = await dependencies.createPaymentBatch({
           tenantId: requestTenantId, invoiceIds: payload.invoiceIds, requestedByRole: actor.role, idempotencyKey,
         }, actor.userId);
+        return response(result.idempotent ? 200 : 201, { ...result, totalInCents: result.totalInCents.toString() });
+      }
+
+      if (request.httpMethod === 'POST' && request.path.endsWith('/approve') && dependencies.approvePaymentBatch) {
+        const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN']);
+        const batchId = request.pathParameters?.batchId?.trim() ?? stringValue(payload, 'batchId', true)!;
+        const result = await dependencies.approvePaymentBatch({
+          tenantId: requestTenantId,
+          batchId,
+          actorUserId: actor.userId,
+          actorRole: actor.role,
+          ...(typeof payload.enforceDualControl === 'boolean' ? { enforceDualControl: payload.enforceDualControl } : {}),
+        });
+        return response(result.idempotent ? 200 : 201, { ...result, totalInCents: result.totalInCents.toString() });
+      }
+
+      if (request.httpMethod === 'POST' && request.path.endsWith('/reverse') && dependencies.reversePaymentBatch) {
+        const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN']);
+        const batchId = request.pathParameters?.batchId?.trim() ?? stringValue(payload, 'batchId', true)!;
+        const reason = stringValue(payload, 'reason', true)!;
+        const result = await dependencies.reversePaymentBatch({
+          tenantId: requestTenantId,
+          batchId,
+          actorUserId: actor.userId,
+          actorRole: actor.role,
+          reason,
+        });
         return response(result.idempotent ? 200 : 201, { ...result, totalInCents: result.totalInCents.toString() });
       }
 

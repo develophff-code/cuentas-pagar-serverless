@@ -27,8 +27,12 @@ se aplicaron por Data API y una segunda ejecución las reconoció como
 registradas. Las etiquetas de costo `Application` y `Environment` están
 activadas. El backend de negocio, dominios, jobs y envíos reales **no** están
 desplegados. La pausa a 0 ACU se verificó (unos 10 minutos tras la última
-actividad). Siguen pendientes las
-pruebas de aislamiento, idempotencia y transacciones contra Aurora.
+actividad) y las pruebas de aislamiento multi-tenant, idempotencia y
+transacciones contra Aurora (`npm run db:validate:aurora`) superaron las 10
+verificaciones en vivo.
+Además, están implementadas y probadas localmente las **Fases D y E**:
+- **Fase D (Web SPA Profesional/Ultra):** panel ejecutivo (`packages/web`) con filtros de grilla, alta y clasificación de proveedores (con bloqueo de confirmación cuando el proveedor permanece en `SIN_CLASIFICAR`), alta/confirmación/cancelación de comprobantes, órdenes de pago por lote, configuración de alertas, membresías, simulación de renovación con Mercado Pago Checkout Pro, captura móvil por WhatsApp QR (`wa.me/5492646276709`) y selector interactivo de rol/plan.
+- **Fase E (Capacidades Ultra e IA):** flujo formal de propuestas de pago (`OPERATOR_PAYMENTS` -> `PENDING_APPROVAL`), aprobación por `ADMIN` con soporte de control dual opcional y reversa auditada de lotes (`REVERSED` con restitución de facturas a `IN_GRID`), política de confianza OCR para extracción documental y asistente conversacional IA de solo lectura con guardarraíles, cuota mensual y trazabilidad (`AiAssistantService`).
 El despacho por SQS está preparado en código. El repositorio cuenta con:
 
 - Modelo de dominio y reglas para tenants, planes, membresías, proveedores, facturas y pagos.

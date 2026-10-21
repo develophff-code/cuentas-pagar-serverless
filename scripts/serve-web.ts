@@ -4,6 +4,7 @@ import { resolve, extname } from 'node:path';
 
 const PORT = 3000;
 const BASE_DIR = resolve(process.cwd(), 'dist/packages/web');
+const SOURCE_INDEX = resolve(process.cwd(), 'packages/web/index.html');
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -24,7 +25,9 @@ const server = createServer(async (req, res) => {
   }
 
   try {
-    const data = await readFile(filePath);
+    const data = urlPath === '/index.html'
+      ? await readFile(SOURCE_INDEX).catch(() => readFile(filePath))
+      : await readFile(filePath);
     const ext = extname(filePath).toLowerCase();
     res.setHeader('Content-Type', MIME_TYPES[ext] || 'application/octet-stream');
     res.statusCode = 200;

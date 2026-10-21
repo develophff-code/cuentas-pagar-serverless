@@ -49,6 +49,54 @@ export function validatePaymentProposal(
   return validatePaymentBatch(request, invoices);
 }
 
+export interface PaymentBatchApprovalRequest {
+  tenantId: string;
+  batchTenantId: string;
+  batchStatus: 'PENDING_APPROVAL' | 'RECORDED' | 'REVERSED' | 'DRAFT';
+  proposedByUserId: string;
+  approvedByUserId: string;
+  approvedByRole: MembershipRole;
+  enforceDualControl?: boolean;
+}
+
+export function validatePaymentApproval(request: PaymentBatchApprovalRequest): void {
+  if (request.tenantId !== request.batchTenantId) {
+    throw new DomainRuleViolation('El lote de pago no pertenece al tenant de la operación.');
+  }
+  if (!canRecordPayment(request.approvedByRole)) {
+    throw new DomainRuleViolation('Sólo un administrador puede aprobar propuestas de pago.');
+  }
+  if (request.batchStatus !== 'PENDING_APPROVAL') {
+    throw new DomainRuleViolation('Sólo se pueden aprobar lotes en estado PENDING_APPROVAL.');
+  }
+  if (request.enforceDualControl && request.proposedByUserId === request.approvedByUserId) {
+    throw new DomainRuleViolation('La política de doble control exige que quien propone no sea quien aprueba.');
+  }
+}
+
+export interface PaymentBatchReversalRequest {
+  tenantId: string;
+  batchTenantId: string;
+  batchStatus: 'PENDING_APPROVAL' | 'RECORDED' | 'REVERSED' | 'DRAFT';
+  reversedByRole: MembershipRole;
+  reason: string;
+}
+
+export function validatePaymentReversal(request: PaymentBatchReversalRequest): void {
+  if (request.tenantId !== request.batchTenantId) {
+    throw new DomainRuleViolation('El lote de pago no pertenece al tenant de la operación.');
+  }
+  if (!canRecordPayment(request.reversedByRole)) {
+    throw new DomainRuleViolation('Sólo un administrador puede revertir una operación de pago.');
+  }
+  if (request.batchStatus !== 'RECORDED' && request.batchStatus !== 'PENDING_APPROVAL') {
+    throw new DomainRuleViolation('El lote no se encuentra en un estado reversible.');
+  }
+  if (!request.reason.trim()) {
+    throw new DomainRuleViolation('La reversión de pago exige un motivo de auditoría.');
+  }
+}
+
 function validatePaymentBatch(
   request: PaymentBatchRequest,
   invoices: readonly InvoiceForPayment[],

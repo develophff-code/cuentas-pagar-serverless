@@ -4,6 +4,8 @@ import {
   canProposePayment,
   DomainRuleViolation,
   validateFullPaymentBatch,
+  validatePaymentApproval,
+  validatePaymentReversal,
   validateSupplier,
 } from './payment-policy.js';
 import { canConfirmInvoices, canCreateInvoices, validateInvoice } from './invoice-policy.js';
@@ -99,4 +101,56 @@ test('el bloqueo conserva facturación pero corta operatoria', () => {
   assert.equal(allowsBillingAccess('BLOCKED_PAYMENT'), true);
   assert.equal(allowsBillingAccess('ACCESS_EXPIRED'), false);
   assert.throws(() => assertAuthorizedRole('OPERATOR_UPLOAD', ['ADMIN']), DomainRuleViolation);
+});
+
+test('aprueba propuesta de pago por administrador y respeta política de doble control en Ultra', () => {
+  assert.doesNotThrow(() =>
+    validatePaymentApproval({
+      tenantId: 'tenant-a',
+      batchTenantId: 'tenant-a',
+      batchStatus: 'PENDING_APPROVAL',
+      proposedByUserId: 'user-op',
+      approvedByUserId: 'user-admin',
+      approvedByRole: 'ADMIN',
+      enforceDualControl: true,
+    }),
+  );
+
+  assert.throws(
+    () =>
+      validatePaymentApproval({
+        tenantId: 'tenant-a',
+        batchTenantId: 'tenant-a',
+        batchStatus: 'PENDING_APPROVAL',
+        proposedByUserId: 'user-admin',
+        approvedByUserId: 'user-admin',
+        approvedByRole: 'ADMIN',
+        enforceDualControl: true,
+      }),
+    DomainRuleViolation,
+  );
+});
+
+test('reversión de pago exige rol ADMIN y motivo de auditoría sin borrar historial', () => {
+  assert.throws(
+    () =>
+      validatePaymentReversal({
+        tenantId: 'tenant-a',
+        batchTenantId: 'tenant-a',
+        batchStatus: 'RECORDED',
+        reversedByRole: 'ADMIN',
+        reason: '   ',
+      }),
+    DomainRuleViolation,
+  );
+
+  assert.doesNotThrow(() =>
+    validatePaymentReversal({
+      tenantId: 'tenant-a',
+      batchTenantId: 'tenant-a',
+      batchStatus: 'RECORDED',
+      reversedByRole: 'ADMIN',
+      reason: 'Error en selección de cuenta destino',
+    }),
+  );
 });
