@@ -55,6 +55,8 @@ export interface InvoiceItem {
   status: 'PENDING_REVIEW' | 'IN_GRID' | 'PAYMENT_PROPOSED' | 'PAID' | 'CANCELLED';
   scheduledPaymentDate?: string | undefined;
   confidenceScore?: number | undefined;
+  attachmentFileName?: string | undefined;
+  attachmentMimeType?: string | undefined;
 }
 
 export interface PaymentBatchSummary {

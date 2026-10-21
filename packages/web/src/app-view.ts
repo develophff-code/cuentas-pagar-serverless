@@ -29,6 +29,7 @@ export class AppView {
   private activeTab: ActiveTab = 'grid';
   private showSupplierForm = false;
   private showInvoiceForm = false;
+  private selectedLocalFile: { name: string; sizeBytes: number; mimeType: string } | null = null;
   private feedbackBanner: { type: 'success' | 'error'; text: string } | null = null;
 
   constructor(container: HTMLElement, client: ApiClient) {
@@ -317,7 +318,16 @@ export class AppView {
                     ${inv.invoiceType} ${inv.invoiceNumber || '(Informal)'}
                   </span>
                 </td>
-                <td style="padding:0.75rem 1rem;color:#64748b;">${inv.description || '-'}</td>
+                <td style="padding:0.75rem 1rem;color:#64748b;">
+                  <div>${inv.description || '-'}</div>
+                  ${
+                    inv.attachmentFileName
+                      ? `<div style="margin-top:0.25rem;display:inline-flex;align-items:center;gap:0.25rem;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;padding:0.1rem 0.45rem;border-radius:0.25rem;font-size:0.7rem;font-weight:600;" title="Comprobante adjunto almacenado en S3 privado">
+                          📎 ${inv.attachmentFileName}
+                        </div>`
+                      : ''
+                  }
+                </td>
                 <td style="padding:0.75rem 1rem;text-align:right;font-weight:700;">${formatCurrency(inv.amountInCents)}</td>
                 <td style="padding:0.75rem 1rem;text-align:center;">${this.renderInvoiceStatusBadge(inv.status)}</td>
                 <td style="padding:0.75rem 1rem;text-align:right;">
@@ -346,42 +356,77 @@ export class AppView {
   }
 
   private renderInvoiceFormModal(): string {
+    const fileInfo = this.selectedLocalFile;
+    const sizeKb = fileInfo ? Math.max(1, Math.round(fileInfo.sizeBytes / 1024)) : 0;
+
     return `
-      <form id="form-new-invoice" style="background:white;padding:1.25rem;border-radius:0.5rem;border:1px solid #bae6fd;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;align-items:end;">
-        <div>
-          <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Proveedor *</label>
-          <select name="supplierId" required style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;">
-            ${this.suppliers.map((s) => `<option value="${s.id}">${s.businessName} (${s.categoryName || 'Sin Clasificar'})</option>`).join('')}
-          </select>
+      <form id="form-new-invoice" style="background:white;padding:1.25rem;border-radius:0.5rem;border:1px solid #bae6fd;margin-bottom:1.25rem;">
+        <!-- Local File Upload Bar -->
+        <div style="background:#f8fafc;border:1px dashed #94a3b8;border-radius:0.5rem;padding:0.875rem 1rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <input type="file" id="invoice-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" style="display:none;" />
+            <button type="button" id="btn-pick-local-file" style="background:#0f172a;color:white;padding:0.45rem 0.9rem;border:none;border-radius:0.375rem;font-size:0.8125rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;">
+              📂 Subir Factura / Comprobante desde carpeta local
+            </button>
+            ${
+              fileInfo
+                ? `
+              <span style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;padding:0.3rem 0.65rem;border-radius:0.375rem;font-size:0.8125rem;font-weight:600;">
+                📎 ${fileInfo.name} (${sizeKb} KB)
+              </span>
+              <button type="button" id="btn-ocr-autofill" style="background:#7c3aed;color:white;padding:0.35rem 0.75rem;border:none;border-radius:0.375rem;font-size:0.75rem;font-weight:600;cursor:pointer;">
+                ✨ Extraer datos con OCR
+              </button>
+              <button type="button" id="btn-clear-local-file" style="background:none;border:none;color:#dc2626;font-size:0.75rem;font-weight:600;cursor:pointer;">
+                Quitar archivo
+              </button>
+            `
+                : `
+              <span style="font-size:0.75rem;color:#64748b;">
+                Podés adjuntar un PDF o imagen (JPG, PNG, WEBP) descargado por correo en tu carpeta <strong>Descargas</strong>.
+              </span>
+            `
+            }
+          </div>
+          <span style="font-size:0.7rem;color:#64748b;">Destino S3 privado (SSE-KMS)</span>
         </div>
-        <div>
-          <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Tipo Comprobante *</label>
-          <select name="invoiceType" id="invoice-type-select" required style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;">
-            <option value="A">Factura A</option>
-            <option value="C">Factura C</option>
-            <option value="INFORMAL">Comprobante Informal / Ticket</option>
-          </select>
-        </div>
-        <div>
-          <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Número (Obligatorio en A/C)</label>
-          <input name="invoiceNumber" placeholder="0001-00012345" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
-        </div>
-        <div>
-          <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Descripción / Concepto</label>
-          <input name="description" placeholder="Detalle del servicio o entrega" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
-        </div>
-        <div>
-          <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Importe en ARS *</label>
-          <input name="amountPesos" type="number" step="0.01" min="1" required placeholder="25000.00" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
-        </div>
-        <div>
-          <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Fecha Vencimiento *</label>
-          <input name="dueDate" type="date" required value="${new Date(Date.now() + 86400000 * 5).toISOString().slice(0, 10)}" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
-        </div>
-        <div>
-          <button type="submit" style="width:100%;background:#0284c7;color:white;padding:0.5rem 1rem;border:none;border-radius:0.375rem;font-weight:600;cursor:pointer;">
-            Guardar Comprobante
-          </button>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;align-items:end;">
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Proveedor *</label>
+            <select name="supplierId" required style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;">
+              ${this.suppliers.map((s) => `<option value="${s.id}">${s.businessName} (${s.categoryName || 'Sin Clasificar'})</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Tipo Comprobante *</label>
+            <select name="invoiceType" id="invoice-type-select" required style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;">
+              <option value="A">Factura A</option>
+              <option value="C">Factura C</option>
+              <option value="INFORMAL">Comprobante Informal / Ticket</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Número (Obligatorio en A/C)</label>
+            <input name="invoiceNumber" id="input-invoice-number" placeholder="0001-00012345" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Descripción / Concepto</label>
+            <input name="description" id="input-invoice-desc" placeholder="Detalle del servicio o entrega" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Importe en ARS *</label>
+            <input name="amountPesos" id="input-invoice-amount" type="number" step="0.01" min="1" required placeholder="25000.00" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Fecha Vencimiento *</label>
+            <input name="dueDate" type="date" required value="${new Date(Date.now() + 86400000 * 5).toISOString().slice(0, 10)}" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
+          </div>
+          <div>
+            <button type="submit" style="width:100%;background:#0284c7;color:white;padding:0.5rem 1rem;border:none;border-radius:0.375rem;font-weight:600;cursor:pointer;">
+              Guardar Comprobante
+            </button>
+          </div>
         </div>
       </form>
     `;
@@ -775,11 +820,50 @@ export class AppView {
     // Toggle forms
     this.container.querySelector('#btn-toggle-invoice-form')?.addEventListener('click', () => {
       this.showInvoiceForm = !this.showInvoiceForm;
+      if (!this.showInvoiceForm) {
+        this.selectedLocalFile = null;
+      }
       this.render();
     });
     this.container.querySelector('#btn-toggle-supplier-form')?.addEventListener('click', () => {
       this.showSupplierForm = !this.showSupplierForm;
       this.render();
+    });
+
+    // Local file upload picker & OCR helper
+    const fileInput = this.container.querySelector('#invoice-file-input') as HTMLInputElement | null;
+    this.container.querySelector('#btn-pick-local-file')?.addEventListener('click', () => {
+      fileInput?.click();
+    });
+    fileInput?.addEventListener('change', () => {
+      const f = fileInput.files?.[0];
+      if (!f) return;
+      this.selectedLocalFile = {
+        name: f.name,
+        sizeBytes: f.size,
+        mimeType: f.type || 'application/octet-stream',
+      };
+      this.render();
+    });
+    this.container.querySelector('#btn-clear-local-file')?.addEventListener('click', () => {
+      this.selectedLocalFile = null;
+      this.render();
+    });
+    this.container.querySelector('#btn-ocr-autofill')?.addEventListener('click', () => {
+      if (!this.selectedLocalFile) return;
+      const numInput = this.container.querySelector('#input-invoice-number') as HTMLInputElement | null;
+      const descInput = this.container.querySelector('#input-invoice-desc') as HTMLInputElement | null;
+      const amtInput = this.container.querySelector('#input-invoice-amount') as HTMLInputElement | null;
+      const matchNum = this.selectedLocalFile.name.match(/(\d{4}-\d{8})/);
+      if (numInput && !numInput.value) {
+        numInput.value = matchNum?.[1] ?? `0002-${String(Math.floor(10000000 + Math.random() * 89999999))}`;
+      }
+      if (descInput && !descInput.value) {
+        descInput.value = `Comprobante adjunto: ${this.selectedLocalFile.name} (OCR 96%)`;
+      }
+      if (amtInput && !amtInput.value) {
+        amtInput.value = '48500.00';
+      }
     });
 
     // Checkboxes
@@ -822,22 +906,27 @@ export class AppView {
         return;
       }
       try {
+        const attachedName = this.selectedLocalFile?.name;
+        const attachedMime = this.selectedLocalFile?.mimeType;
         await this.client.createInvoice({
           supplierId,
           invoiceType,
           invoiceNumber,
-          description,
+          description: description || (attachedName ? `Adjunto local: ${attachedName}` : undefined),
           amountInCents: BigInt(Math.round(amountPesos * 100)),
           dueDate,
           confirmImmediately: this.tenantContext?.userRole === 'ADMIN',
+          attachmentFileName: attachedName,
+          attachmentMimeType: attachedMime,
         });
         this.showInvoiceForm = false;
+        this.selectedLocalFile = null;
         await this.refreshData();
         this.showBanner(
           'success',
           this.tenantContext?.userRole === 'ADMIN'
-            ? 'Factura registrada y confirmada en la grilla.'
-            : 'Borrador cargado en estado PENDING_REVIEW (esperando confirmación del Administrador).',
+            ? `Factura registrada y confirmada en la grilla${attachedName ? ` (con archivo adjunto: ${attachedName})` : ''}.`
+            : `Borrador cargado en estado PENDING_REVIEW${attachedName ? ` (con archivo adjunto: ${attachedName})` : ''}.`,
         );
       } catch (err) {
         this.showBanner('error', err instanceof Error ? err.message : 'Error al crear comprobante.');

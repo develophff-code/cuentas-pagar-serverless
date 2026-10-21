@@ -31,6 +31,8 @@ export interface ApiClient {
     amountInCents: bigint;
     dueDate: string;
     confirmImmediately?: boolean | undefined;
+    attachmentFileName?: string | undefined;
+    attachmentMimeType?: string | undefined;
   }): Promise<{ id: string }>;
   confirmDraftInvoice?(invoiceId: string): Promise<void>;
   cancelInvoice?(invoiceId: string): Promise<void>;
@@ -97,6 +99,8 @@ export class MockApiClient implements ApiClient {
       amountInCents: '14500000',
       dueDate: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
       status: 'IN_GRID',
+      attachmentFileName: 'Factura_A_0001-00045892.pdf',
+      attachmentMimeType: 'application/pdf',
     },
     {
       id: 'inv-102',
@@ -119,6 +123,8 @@ export class MockApiClient implements ApiClient {
       dueDate: new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 10),
       status: 'PENDING_REVIEW',
       confidenceScore: 0.94,
+      attachmentFileName: 'remito_whatsapp.jpg',
+      attachmentMimeType: 'image/jpeg',
     },
   ];
 
@@ -215,6 +221,8 @@ export class MockApiClient implements ApiClient {
     amountInCents: bigint;
     dueDate: string;
     confirmImmediately?: boolean | undefined;
+    attachmentFileName?: string | undefined;
+    attachmentMimeType?: string | undefined;
   }): Promise<{ id: string }> {
     const sup = this.suppliers.find((s) => s.id === input.supplierId);
     if (!sup) throw new Error('Proveedor no encontrado.');
@@ -233,6 +241,8 @@ export class MockApiClient implements ApiClient {
       amountInCents: input.amountInCents.toString(),
       dueDate: input.dueDate,
       status: canConfirm ? 'IN_GRID' : 'PENDING_REVIEW',
+      attachmentFileName: input.attachmentFileName,
+      attachmentMimeType: input.attachmentMimeType,
     });
     return { id };
   }
@@ -453,6 +463,8 @@ export class HttpApiClient implements ApiClient {
     amountInCents: bigint;
     dueDate: string;
     confirmImmediately?: boolean | undefined;
+    attachmentFileName?: string | undefined;
+    attachmentMimeType?: string | undefined;
   }): Promise<{ id: string }> {
     return this.request<{ id: string }>(`/v1/tenants/${this.tenantId}/invoices`, {
       method: 'POST',
