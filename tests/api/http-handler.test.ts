@@ -142,3 +142,73 @@ test('crea una orden de suscripción con el plan, actor e idempotencia controlad
   assert.equal(receivedKey, 'request-1');
   assert.equal(JSON.parse(response.body).checkoutUrl, 'https://checkout.example/preference-1');
 });
+
+test('propaga archivo adjunto local en alta de factura y ejecuta approve, reverse y consulta IA', async () => {
+  let capturedAttachment: string | undefined;
+  let capturedApproveKey: string | undefined;
+  let capturedReverseReason: string | undefined;
+
+  const fake = dependencies();
+  fake.createInvoice = async (_input, _actor, options) => {
+    capturedAttachment = options.attachmentFileName;
+    return { id: 'invoice-attached', status: 'IN_GRID', idempotent: false };
+  };
+  fake.approvePaymentBatch = async (input) => {
+    capturedApproveKey = input.idempotencyKey;
+    return { batchId: input.batchId, status: 'RECORDED', totalInCents: 5000n, idempotent: false };
+  };
+  fake.reversePaymentBatch = async (input) => {
+    capturedReverseReason = input.reason;
+    return { batchId: input.batchId, status: 'REVERSED', totalInCents: 5000n, idempotent: false };
+  };
+  fake.askAiAssistant = async (_actor, question) => ({
+    answer: `Respuesta para: ${question}`,
+    promptVersion: 'v1.0-readonly-ar',
+    estimatedTokens: 24,
+  });
+
+  const handler = createHttpHandler(fake);
+
+  const invRes = await handler(
+    operationalRequest('/v1/tenants/tenant-1/invoices', {
+      supplierId: 'supplier-1',
+      invoiceType: 'A',
+      invoiceNumber: '0001-00001234',
+      amountInCents: '5000',
+      dueDate: '2026-10-15T00:00:00.000Z',
+      confirmImmediately: true,
+      attachmentFileName: 'factura_descargada.pdf',
+      attachmentMimeType: 'application/pdf',
+    }),
+  );
+  assert.equal(invRes.statusCode, 201);
+  assert.equal(capturedAttachment, 'factura_descargada.pdf');
+
+  const appRes = await handler(
+    operationalRequest(
+      '/v1/tenants/tenant-1/payment-batches/batch-99/approve',
+      { batchId: 'batch-99', enforceDualControl: true },
+      'approve-key-1',
+    ),
+  );
+  assert.equal(appRes.statusCode, 201);
+  assert.equal(capturedApproveKey, 'approve-key-1');
+
+  const revRes = await handler(
+    operationalRequest(
+      '/v1/tenants/tenant-1/payment-batches/batch-99/reverse',
+      { batchId: 'batch-99', reason: 'Error operativo detectado' },
+      'reverse-key-1',
+    ),
+  );
+  assert.equal(revRes.statusCode, 201);
+  assert.equal(capturedReverseReason, 'Error operativo detectado');
+
+  const aiReq = operationalRequest('/v1/tenants/tenant-1/ai/query', {
+    question: '¿Cuánto vence esta semana?',
+  });
+  aiReq.headers = {};
+  const aiRes = await handler(aiReq);
+  assert.equal(aiRes.statusCode, 200);
+  assert.match(aiRes.body, /Respuesta para:/);
+});

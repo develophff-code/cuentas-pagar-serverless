@@ -58,7 +58,12 @@ export interface ApiDependencies {
     issueDate?: Date;
     dueDate: Date;
     scheduledPaymentDate?: Date;
-  }, actor: InvoiceActor, options: { confirmImmediately: boolean; idempotencyKey: string }): Promise<{
+  }, actor: InvoiceActor, options: {
+    confirmImmediately: boolean;
+    idempotencyKey: string;
+    attachmentFileName?: string;
+    attachmentMimeType?: string;
+  }): Promise<{
     id: string;
     status: 'PENDING_REVIEW' | 'IN_GRID';
     idempotent: boolean;
@@ -74,6 +79,7 @@ export interface ApiDependencies {
     batchId: string;
     actorUserId: string;
     actorRole: MembershipRole;
+    idempotencyKey: string;
     enforceDualControl?: boolean;
   }): Promise<PaymentBatchResult>;
   reversePaymentBatch?(input: {
@@ -81,8 +87,13 @@ export interface ApiDependencies {
     batchId: string;
     actorUserId: string;
     actorRole: MembershipRole;
+    idempotencyKey: string;
     reason: string;
   }): Promise<PaymentBatchResult>;
+  askAiAssistant?(
+    actor: AuthenticatedActor,
+    question: string,
+  ): Promise<{ answer: string; promptVersion: string; estimatedTokens: number }>;
   listPaymentGrid(actor: AuthenticatedActor): Promise<PaymentGridEntry[]>;
   updatePaymentGridConfiguration(actor: AuthenticatedActor, input: {
     timezone: string;
@@ -216,6 +227,17 @@ export function createHttpHandler(dependencies: ApiDependencies) {
         })) });
       }
 
+      if (request.httpMethod === 'POST' && request.path.endsWith('/ai/query') && dependencies.askAiAssistant) {
+        const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, [
+          'ADMIN',
+          'OPERATOR_UPLOAD',
+          'OPERATOR_PAYMENTS',
+        ]);
+        const question = stringValue(payload, 'question', true)!;
+        const result = await dependencies.askAiAssistant(actor, question);
+        return response(200, result);
+      }
+
       const idempotencyKey = requiredIdempotencyKey(request);
 
       if (request.httpMethod === 'POST' && request.path.endsWith('/subscription-orders')) {
@@ -270,7 +292,14 @@ export function createHttpHandler(dependencies: ApiDependencies) {
             invoiceNumber: stringValue(payload, 'invoiceNumber'), description: stringValue(payload, 'description'),
             issueDate: dateValue(payload, 'issueDate'), scheduledPaymentDate: dateValue(payload, 'scheduledPaymentDate'),
           }),
-        }, actor, { confirmImmediately, idempotencyKey });
+        }, actor, {
+          confirmImmediately,
+          idempotencyKey,
+          ...optionalFields({
+            attachmentFileName: stringValue(payload, 'attachmentFileName'),
+            attachmentMimeType: stringValue(payload, 'attachmentMimeType'),
+          }),
+        });
         return response(result.idempotent ? 200 : 201, result);
       }
 
@@ -293,6 +322,7 @@ export function createHttpHandler(dependencies: ApiDependencies) {
           batchId,
           actorUserId: actor.userId,
           actorRole: actor.role,
+          idempotencyKey,
           ...(typeof payload.enforceDualControl === 'boolean' ? { enforceDualControl: payload.enforceDualControl } : {}),
         });
         return response(result.idempotent ? 200 : 201, { ...result, totalInCents: result.totalInCents.toString() });
@@ -307,6 +337,7 @@ export function createHttpHandler(dependencies: ApiDependencies) {
           batchId,
           actorUserId: actor.userId,
           actorRole: actor.role,
+          idempotencyKey,
           reason,
         });
         return response(result.idempotent ? 200 : 201, { ...result, totalInCents: result.totalInCents.toString() });

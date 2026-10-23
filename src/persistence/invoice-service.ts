@@ -18,6 +18,8 @@ export interface InvoiceActor {
 export interface CreateInvoiceOptions {
   confirmImmediately?: boolean;
   idempotencyKey?: string;
+  attachmentFileName?: string;
+  attachmentMimeType?: string;
 }
 
 function centsToDecimal(amountInCents: bigint): string {
@@ -84,10 +86,29 @@ export class InvoiceService {
         throw new DomainRuleViolation('El proveedor no existe, no está activo o no pertenece al tenant.');
       }
 
+      let documentId: string | undefined;
+      const cleanFileName = options.attachmentFileName?.trim();
+      if (cleanFileName && transaction.documents) {
+        const doc = await transaction.documents.create({
+          data: {
+            tenant_id: actor.tenantId,
+            source: 'WEB',
+            status: 'UPLOADED',
+            original_file_name: cleanFileName,
+            mime_type: options.attachmentMimeType?.trim() || 'application/octet-stream',
+            object_key: `tenants/${actor.tenantId}/web/${idempotencyKey ?? Date.now()}/${cleanFileName}`,
+            created_by_user_id: actor.userId,
+          },
+          select: { id: true },
+        });
+        documentId = doc.id;
+      }
+
       const invoice = await transaction.invoices.create({
         data: {
           tenant_id: actor.tenantId,
           supplier_id: input.supplierId,
+          ...(documentId === undefined ? {} : { document_id: documentId }),
           invoice_type: input.invoiceType,
           ...(input.invoiceNumber?.trim() === undefined ? {} : { invoice_number: input.invoiceNumber.trim() }),
           ...(input.description?.trim() === undefined ? {} : { description: input.description.trim() }),
