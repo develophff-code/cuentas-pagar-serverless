@@ -26,6 +26,7 @@ export interface BusinessStackProps extends cdk.StackProps {
   templateBindings?: string;
   enableSchedules?: boolean;
   publicDomain?: string;
+  reservedConcurrencyPerFunction?: number;
 }
 
 /** Opt-in: preparar por synth; desplegar sólo tras aprobación de costos. */
@@ -73,7 +74,9 @@ export class BusinessStack extends cdk.Stack {
           vpc: data.vpc, vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
           securityGroups: [data.applicationSecurityGroup],
         } : {}),
-        ...(mvp ? { reservedConcurrentExecutions: 2 } : {}),
+        ...(props.reservedConcurrencyPerFunction !== undefined
+          ? { reservedConcurrentExecutions: props.reservedConcurrencyPerFunction }
+          : {}),
         logGroup: group as unknown as logs.ILogGroupRef,
         environment: {
           ...(data.connectionMode === 'data-api' ? {

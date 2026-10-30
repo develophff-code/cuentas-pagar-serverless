@@ -25,8 +25,10 @@ presupuestan por separado, según la decisión del 2026-10-13.
 S3 privado y secreto de base; sin Proxy ni NAT). Las migraciones `001`–`008`
 se aplicaron por Data API y una segunda ejecución las reconoció como
 registradas. Las etiquetas de costo `Application` y `Environment` están
-activadas. El backend de negocio, dominios, jobs y envíos reales **no** están
-desplegados. La pausa a 0 ACU se verificó (unos 10 minutos tras la última
+activadas.
+**Etapa 2 del MVP (`CuentasPagarBusiness-dev`) desplegada el 2026-10-30 en `us-east-1`:**
+API Gateway (`BusinessApi`), Cognito User Pool (`us-east-1_qGzFjVQF7`), 5 Lambdas fuera de VPC por Data API (`BusinessHandler`, `PaymentRedirect`, `MercadoPagoWebhook`, `SubscriptionLifecycle`, `NotificationDispatcher`) y colas SQS (`DispatchQueue` y `DispatchDlq`), con jobs y consumidor SQS desactivados por defecto para mantener Aurora en `0.0 ACU` sin tráfico.
+La pausa a 0 ACU se verificó (unos 10 minutos tras la última
 actividad) y las pruebas de aislamiento multi-tenant, idempotencia y
 transacciones contra Aurora (`npm run db:validate:aurora`) superaron las 10
 verificaciones en vivo.

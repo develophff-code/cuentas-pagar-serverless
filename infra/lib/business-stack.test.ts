@@ -54,7 +54,7 @@ test('MVP usa Data API, pausa Aurora y despierta dispatcher por SQS sin polling'
   for (const fn of Object.values(template.findResources('AWS::Lambda::Function'))) {
     assert.equal(fn.Properties.VpcConfig, undefined);
     assert.equal(fn.Properties.Environment.Variables.DATABASE_ACCESS_MODE, 'data-api');
-    assert.equal(fn.Properties.ReservedConcurrentExecutions, 2);
+    assert.equal(fn.Properties.ReservedConcurrentExecutions, undefined);
   }
   template.resourceCountIs('AWS::Events::Rule', 1);
   template.hasResourceProperties('AWS::Events::Rule', { ScheduleExpression: 'cron(0 12 * * ? *)', State: 'DISABLED' });
