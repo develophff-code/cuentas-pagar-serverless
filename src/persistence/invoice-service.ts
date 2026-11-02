@@ -80,10 +80,13 @@ export class InvoiceService {
       await assertMonthlyInvoiceCapacity(transaction, actor.tenantId);
       const supplier = await transaction.suppliers.findFirst({
         where: { id: input.supplierId, tenant_id: actor.tenantId, is_active: true },
-        select: { id: true },
+        select: { id: true, category_code: true },
       });
       if (supplier === null) {
         throw new DomainRuleViolation('El proveedor no existe, no está activo o no pertenece al tenant.');
+      }
+      if (status === 'IN_GRID' && (!supplier.category_code || supplier.category_code === 'SIN_CLASIFICAR')) {
+        throw new DomainRuleViolation('Clasificá al proveedor antes de confirmar una factura.');
       }
 
       let documentId: string | undefined;

@@ -8,10 +8,13 @@ import type {
   PaymentBatchSummary,
   TeamMemberItem,
   AiChatMessage,
+  CategoryCatalogItem,
 } from './types.js';
 import { INITIAL_CATEGORIES } from './types.js';
 
 export interface ApiClient {
+  listCategories?(): Promise<readonly CategoryCatalogItem[]>;
+  createSubscriptionCheckout?(planCode: Exclude<PlanCode, 'BASIC'>): Promise<{ checkoutUrl: string }>;
   getTenantContext(): Promise<TenantContext>;
   setDemoPlanAndRole?(planCode: Exclude<PlanCode, 'BASIC'>, role: MembershipRole): Promise<TenantContext>;
   listSuppliers(): Promise<SupplierSummary[]>;
@@ -414,6 +417,7 @@ export class HttpApiClient implements ApiClient {
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const token = await this.getAuthToken();
+    if (!token) throw new Error('La sesión venció. Volvé a ingresar.');
     const headers: Record<string, string> = {
       'content-type': 'application/json',
       ...(token ? { authorization: `Bearer ${token}` } : {}),
@@ -433,8 +437,28 @@ export class HttpApiClient implements ApiClient {
     return this.request<TenantContext>(`/v1/tenants/${this.tenantId}/context`);
   }
 
+  async listCategories(): Promise<CategoryCatalogItem[]> {
+    return (await this.request<{ items: CategoryCatalogItem[] }>(`/v1/tenants/${this.tenantId}/categories`)).items;
+  }
+
+  async listPaymentBatches(): Promise<PaymentBatchSummary[]> {
+    return (await this.request<{ items: PaymentBatchSummary[] }>(`/v1/tenants/${this.tenantId}/payment-batches`)).items;
+  }
+
+  async listTeamMembers(): Promise<TeamMemberItem[]> {
+    const context = await this.getTenantContext();
+    if (context.userRole !== 'ADMIN') return [];
+    return (await this.request<{ items: TeamMemberItem[] }>(`/v1/tenants/${this.tenantId}/members`)).items;
+  }
+
+  async createSubscriptionCheckout(planCode: Exclude<PlanCode, 'BASIC'>): Promise<{ checkoutUrl: string }> {
+    return this.request(`/v1/tenants/${this.tenantId}/subscription-orders`, {
+      method: 'POST', headers: { 'idempotency-key': crypto.randomUUID() }, body: JSON.stringify({ planCode }),
+    });
+  }
+
   async listSuppliers(): Promise<SupplierSummary[]> {
-    return this.request<SupplierSummary[]>(`/v1/tenants/${this.tenantId}/suppliers`);
+    return (await this.request<{ items: SupplierSummary[] }>(`/v1/tenants/${this.tenantId}/suppliers`)).items;
   }
 
   async createSupplier(input: {
@@ -447,12 +471,12 @@ export class HttpApiClient implements ApiClient {
     return this.request<{ id: string }>(`/v1/tenants/${this.tenantId}/suppliers`, {
       method: 'POST',
       headers: { 'idempotency-key': `sup-${Date.now()}-${Math.random()}` },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, categoryCode: input.categoryCode === 'SIN_CLASIFICAR' ? undefined : input.categoryCode }),
     });
   }
 
   async listPaymentGrid(): Promise<InvoiceItem[]> {
-    return this.request<InvoiceItem[]>(`/v1/tenants/${this.tenantId}/payment-grid`);
+    return (await this.request<{ items: InvoiceItem[] }>(`/v1/tenants/${this.tenantId}/invoices`)).items;
   }
 
   async createInvoice(input: {

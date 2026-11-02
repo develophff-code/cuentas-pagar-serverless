@@ -12,6 +12,7 @@ export interface TenantContext {
   planCode: Exclude<PlanCode, 'BASIC'>;
   userRole: MembershipRole;
   dualControlEnabled?: boolean | undefined;
+  operationalAccess?: boolean;
 }
 
 export interface CategoryCatalogItem {
@@ -64,7 +65,7 @@ export interface PaymentBatchSummary {
   status: 'RECORDED' | 'PENDING_APPROVAL' | 'REVERSED';
   totalInCents: string;
   invoiceIds: string[];
-  proposedByRole: MembershipRole;
+  proposedByRole?: MembershipRole;
   proposedAt: string;
   reversalReason?: string | undefined;
 }

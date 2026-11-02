@@ -17,3 +17,9 @@ export function formatDate(isoDate: string): string {
   if (parts.length !== 3) return isoDate;
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
+/** Encode untrusted text before inserting it into HTML text or quoted attributes. */
+export function escapeHtml(value: unknown): string {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]!);
+}

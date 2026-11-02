@@ -10,6 +10,8 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as deployment from 'aws-cdk-lib/aws-s3-deployment';
 import type * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import * as path from 'node:path';
@@ -60,7 +62,12 @@ export class BusinessStack extends cdk.Stack {
       selfSignUpEnabled: false, signInAliases: { email: true },
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
-    pool.addClient('WebClient', { generateSecret: false, authFlows: { userSrp: true } });
+    const webClient = pool.addClient('WebClient', { generateSecret: false, authFlows: { userSrp: true },
+      ...(props.publicDomain ? { oAuth: {
+        flows: { authorizationCodeGrant: true }, scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL, cognito.OAuthScope.PROFILE],
+        callbackUrls: [`https://${props.publicDomain}/`], logoutUrls: [`https://${props.publicDomain}/`],
+      } } : {}),
+    });
     const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'BusinessAuthorizer', { cognitoUserPools: [pool] });
     const code = lambda.Code.fromAsset(path.resolve(process.cwd(), '.lambda-build'));
     const createFunction = (name: string, handler: string, runtimeSecret: boolean, timeout = 30) => {
@@ -140,23 +147,59 @@ export class BusinessStack extends cdk.Stack {
       targets: [new targets.LambdaFunction(dispatcher, { retryAttempts: 2 })],
     });
     if (props.publicDomain) {
+      const authDomain = pool.addDomain('LoginDomain', {
+        cognitoDomain: { domainPrefix: `cuentas-pagar-${props.stage}-${this.account}` },
+      });
+      const webBucket = new s3.Bucket(this, 'WebAssets', {
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL, enforceSSL: true,
+        encryption: s3.BucketEncryption.S3_MANAGED, removalPolicy: cdk.RemovalPolicy.RETAIN,
+      });
+      const apiBehavior: cloudfront.BehaviorOptions = {
+        origin: new origins.HttpOrigin(apiHost, { originPath: `/${props.stage}`, protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY }),
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+      };
       // ACM DNS validation awaits manual CNAME at Hostinger; no DNS mutations.
       const certificate = new acm.Certificate(this, 'PublicCertificate', {
         domainName: props.publicDomain, validation: acm.CertificateValidation.fromDns(),
       });
       const distribution = new cloudfront.Distribution(this, 'PublicDistribution', {
         domainNames: [props.publicDomain], certificate,
+        defaultRootObject: 'index.html',
         defaultBehavior: {
-          origin: new origins.HttpOrigin(apiHost, { originPath: `/${props.stage}` }),
+          origin: origins.S3BucketOrigin.withOriginAccessControl(webBucket as unknown as s3.IBucket),
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          responseHeadersPolicy: new cloudfront.ResponseHeadersPolicy(this, 'WebSecurityHeaders', {
+            securityHeadersBehavior: {
+              contentTypeOptions: { override: true },
+              frameOptions: { frameOption: cloudfront.HeadersFrameOption.DENY, override: true },
+              referrerPolicy: { referrerPolicy: cloudfront.HeadersReferrerPolicy.NO_REFERRER, override: true },
+              strictTransportSecurity: { accessControlMaxAge: cdk.Duration.days(365), override: true },
+              contentSecurityPolicy: { contentSecurityPolicy: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ${authDomain.baseUrl()}; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`, override: true },
+            },
+          }),
         },
+        additionalBehaviors: { 'v1/*': apiBehavior, 'api/*': apiBehavior, 'p/*': apiBehavior, 'subscription/payment/*': apiBehavior },
         errorResponses: [404, 500, 503].map((httpStatus) => ({ httpStatus, ttl: cdk.Duration.seconds(0) })),
       });
+      new deployment.BucketDeployment(this, 'PublishWeb', {
+        destinationBucket: webBucket as unknown as s3.IBucket,
+        sources: [deployment.Source.asset(path.resolve(process.cwd(), '.web-build')),
+          deployment.Source.jsonData('app-config.json', {
+            mode: 'live', apiBaseUrl: '', region: this.region, userPoolId: pool.userPoolId,
+            clientId: webClient.userPoolClientId, authDomain: authDomain.baseUrl(),
+          })],
+        cacheControl: [deployment.CacheControl.noStore()],
+      });
+      new cdk.CfnOutput(this, 'WebBucketName', { value: webBucket.bucketName });
+      new cdk.CfnOutput(this, 'WebUrl', { value: `https://${props.publicDomain}` });
+      new cdk.CfnOutput(this, 'CertificateArn', { value: certificate.certificateArn });
       new cdk.CfnOutput(this, 'PublicDomainCnameTarget', { value: distribution.distributionDomainName });
     }
+    new cdk.CfnOutput(this, 'CognitoWebClientId', { value: webClient.userPoolClientId });
     new cdk.CfnOutput(this, 'BusinessApiBaseUrl', { value: apiBase });
     new cdk.CfnOutput(this, 'MercadoPagoWebhookUrl', { value: `${apiBase}/api/webhook/mercado-pago` });
     new cdk.CfnOutput(this, 'CognitoUserPoolId', { value: pool.userPoolId });

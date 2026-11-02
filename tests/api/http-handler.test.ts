@@ -2,6 +2,56 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHttpHandler, type ApiDependencies } from '../../src/api/http-handler.js';
 import type { ApiGatewayRequest } from '../../src/api/http-types.js';
+import { WebQueryService } from '../../src/persistence/web-query-service.js';
+import type { PrismaClient } from '../../src/generated/prisma/client.js';
+import { DomainRuleViolation } from '../../packages/domain/src/payment-policy.js';
+
+test('proxy de API Gateway extrae tenant de la ruta, sin confiar en el cuerpo ni en parámetros discordantes', async () => {
+  let receivedTenant = '';
+  const fake = dependencies();
+  fake.authorizeOperational = async (_sub, tenantId) => {
+    receivedTenant = tenantId; return { tenantId, userId: 'u', role: 'ADMIN' };
+  };
+  const request = operationalRequest('/v1/tenants/tenant-1/suppliers', { businessName: 'SA', mobilePhone: '+5491100000000', tenantId: 'other' });
+  request.pathParameters = { proxy: 'tenants/tenant-1/suppliers' };
+  assert.equal((await createHttpHandler(fake)(request)).statusCode, 201);
+  assert.equal(receivedTenant, 'tenant-1');
+  request.pathParameters = { tenantId: 'other' };
+  assert.equal((await createHttpHandler(fake)(request)).statusCode, 400);
+});
+
+test('consultas SPA autorizan antes de leer y serializan el contrato HTTP', async () => {
+  const fake = dependencies();
+  const queries = new WebQueryService({} as PrismaClient);
+  let read = false;
+  queries.suppliers = async actor => {
+    read = true; assert.equal(actor.tenantId, 'tenant-1');
+    return [{ id: 's', businessName: 'Proveedor', mobilePhone: '+5491100000000', cuit: undefined, categoryCode: 'HONORARIOS', categoryName: 'Honorarios' }];
+  };
+  fake.webQueries = queries;
+  const request = operationalRequest('/v1/tenants/tenant-1/suppliers', {});
+  request.httpMethod = 'GET'; request.body = null; request.headers = {}; request.pathParameters = { proxy: 'tenants/tenant-1/suppliers' };
+  const result = await createHttpHandler(fake)(request);
+  assert.equal(result.statusCode, 200);
+  assert.equal(JSON.parse(result.body).items[0].id, 's');
+  assert.equal(result.headers['cache-control'], 'no-store');
+  read = false;
+  fake.authorizeOperational = async () => { throw new DomainRuleViolation('Sin membresía'); };
+  assert.equal((await createHttpHandler(fake)(request)).statusCode, 400);
+  assert.equal(read, false);
+});
+
+test('listado personal obtiene identidad del JWT y exige autenticación', async () => {
+  const fake = dependencies();
+  const queries = new WebQueryService({} as PrismaClient);
+  queries.memberships = async sub => { assert.equal(sub, 'cognito-sub'); return [{ tenantId: 't', businessName: 'Empresa' }]; };
+  fake.webQueries = queries;
+  const request = operationalRequest('/v1/me/tenants', {});
+  request.httpMethod = 'GET'; request.body = null;
+  assert.equal((await createHttpHandler(fake)(request)).statusCode, 200);
+  request.requestContext = {};
+  assert.equal((await createHttpHandler(fake)(request)).statusCode, 400);
+});
 
 function dependencies(): ApiDependencies {
   return {

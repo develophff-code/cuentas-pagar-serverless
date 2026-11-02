@@ -306,6 +306,20 @@ Medidas:
 
 ## 14. Fases de implementación
 
+**Estado de publicación al 2026-11-02:** etapas MVP de datos y negocio
+desplegadas en dev. Se preparó localmente la publicación SPA con S3 privado,
+CloudFront/OAC, ACM y login Cognito con PKCE. Conserva las rutas de negocio
+`/v1/*` existentes bajo el mismo dominio; `/api/*` conserva los webhooks,
+además de `/p/*` y los retornos de pago. Esta adaptación evita cambiar el
+contrato API mientras se conecta el piloto. Actualización aprobada por el
+dueño; el intento de despliegue validó ACM pero CloudFront lo rechazó por
+verificación de cuenta pendiente (403). CloudFormation terminó el rollback
+en `UPDATE_ROLLBACK_COMPLETE`; bucket web retenido.
+Resolver con AWS Support antes de reintentar; publicación y E2E pendientes.
+Las capacidades locales D/E no equivalen a integración productiva completa:
+ver alcance, funciones pendientes y validación en
+[Publicación web MVP](docs/PUBLICACION_WEB_MVP.md).
+
 ### Fase A — Fundaciones y dominio
 
 1. Definir precios, límites, período de gracia, retención de datos y política de cancelación. Decisiones iniciales: ARS 28.000/82.000/144.000 por mes, prueba de siete días y bloqueo de operatoria por siete días antes de revocar el acceso.

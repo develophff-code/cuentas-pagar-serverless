@@ -8,8 +8,10 @@ import type {
   SupplierSummary,
   TeamMemberItem,
   TenantContext,
+  CategoryCatalogItem,
 } from './types.js';
 import { INITIAL_CATEGORIES } from './types.js';
+import { escapeHtml } from './utils.js';
 import { formatCurrency, formatDate } from './utils.js';
 
 type ActiveTab = 'grid' | 'suppliers' | 'alerts' | 'team' | 'whatsapp' | 'ai';
@@ -19,6 +21,7 @@ export class AppView {
   private client: ApiClient;
   private tenantContext: TenantContext | null = null;
   private suppliers: SupplierSummary[] = [];
+  private categories: readonly CategoryCatalogItem[] = INITIAL_CATEGORIES;
   private invoices: InvoiceItem[] = [];
   private batches: PaymentBatchSummary[] = [];
   private gridConfig: PaymentGridConfig | null = null;
@@ -41,7 +44,8 @@ export class AppView {
     this.renderLoading();
     try {
       this.tenantContext = await this.client.getTenantContext();
-      await this.refreshData();
+      if (this.tenantContext.operationalAccess === false) this.activeTab = 'team';
+      else await this.refreshData();
       this.render();
     } catch (err) {
       this.renderError(err instanceof Error ? err.message : 'Error al cargar la aplicación');
@@ -49,13 +53,14 @@ export class AppView {
   }
 
   private async refreshData(): Promise<void> {
-    const [suppliers, invoices, gridConfig, batches, team, aiHistory] = await Promise.all([
+    const [suppliers, invoices, gridConfig, batches, team, aiHistory, categories] = await Promise.all([
       this.client.listSuppliers(),
       this.client.listPaymentGrid(),
       this.client.getGridConfig(),
       this.client.listPaymentBatches ? this.client.listPaymentBatches() : Promise.resolve([]),
       this.client.listTeamMembers ? this.client.listTeamMembers() : Promise.resolve([]),
       this.client.listAiHistory ? this.client.listAiHistory() : Promise.resolve([]),
+      this.client.listCategories ? this.client.listCategories() : Promise.resolve(INITIAL_CATEGORIES),
     ]);
     this.suppliers = suppliers;
     this.invoices = invoices;
@@ -63,6 +68,7 @@ export class AppView {
     this.batches = batches;
     this.teamMembers = team;
     this.aiMessages = aiHistory;
+    this.categories = categories;
     this.selectedInvoiceIds.clear();
   }
 
@@ -83,7 +89,7 @@ export class AppView {
     this.container.innerHTML = `
       <div style="padding:2rem;max-width:32rem;margin:4rem auto;background:#fef2f2;border:1px solid #f87171;border-radius:0.5rem;font-family:sans-serif;">
         <h2 style="color:#991b1b;margin-top:0;">Error</h2>
-        <p style="color:#7f1d1d;">${msg}</p>
+        <p style="color:#7f1d1d;">${escapeHtml(msg)}</p>
         <button id="retry-btn" style="background:#dc2626;color:white;padding:0.5rem 1rem;border:none;border-radius:0.25rem;cursor:pointer;">Reintentar</button>
       </div>
     `;
@@ -102,11 +108,11 @@ export class AppView {
             <div style="width:2.25rem;height:2.25rem;background:#0284c7;color:white;border-radius:0.375rem;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.125rem;">$</div>
             <div>
               <h1 style="font-size:1.125rem;font-weight:700;margin:0;">Cuentas a Pagar Serverless</h1>
-              <p style="font-size:0.8125rem;color:#64748b;margin:0;">${this.tenantContext.businessName} &bull; Tenant ID: <code>${this.tenantContext.tenantId}</code></p>
+              <p style="font-size:0.8125rem;color:#64748b;margin:0;">${escapeHtml(this.tenantContext.businessName)} &bull; Tenant ID: <code>${escapeHtml(this.tenantContext.tenantId)}</code></p>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-            <label style="font-size:0.75rem;color:#475569;font-weight:600;">Simulador Plan / Rol:</label>
+            ${this.client.setDemoPlanAndRole ? `<label style="font-size:0.75rem;color:#475569;font-weight:600;">Simulador Plan / Rol:</label>
             <select id="demo-plan-select" style="padding:0.35rem 0.5rem;border:1px solid #cbd5e1;border-radius:0.375rem;font-size:0.75rem;font-weight:600;">
               <option value="PROFESSIONAL" ${this.tenantContext.planCode === 'PROFESSIONAL' ? 'selected' : ''}>Plan PROFESSIONAL ($82.000/mes)</option>
               <option value="ULTRA" ${this.tenantContext.planCode === 'ULTRA' ? 'selected' : ''}>Plan ULTRA ($144.000/mes)</option>
@@ -115,18 +121,18 @@ export class AppView {
               <option value="ADMIN" ${this.tenantContext.userRole === 'ADMIN' ? 'selected' : ''}>Rol: ADMIN</option>
               <option value="OPERATOR_UPLOAD" ${this.tenantContext.userRole === 'OPERATOR_UPLOAD' ? 'selected' : ''}>Rol: OPERATOR_UPLOAD (Carga)</option>
               <option value="OPERATOR_PAYMENTS" ${this.tenantContext.userRole === 'OPERATOR_PAYMENTS' ? 'selected' : ''}>Rol: OPERATOR_PAYMENTS (Pagos)</option>
-            </select>
+            </select>` : `<span>${escapeHtml(this.tenantContext.planCode)} · ${escapeHtml(this.tenantContext.userRole)}</span>`}
           </div>
         </header>
 
         <!-- Navigation Tabs -->
         <nav style="background:#ffffff;border-bottom:1px solid #e2e8f0;padding:0 2rem;display:flex;gap:1.5rem;overflow-x:auto;">
-          ${this.renderTabButton('grid', `Grilla y Pagos (${this.invoices.length})`)}
+          ${this.tenantContext.operationalAccess !== false ? `${this.renderTabButton('grid', `Grilla y Pagos (${this.invoices.length})`)}
           ${this.renderTabButton('suppliers', `Proveedores (${this.suppliers.length})`)}
-          ${this.renderTabButton('alerts', 'Alertas WhatsApp')}
+          ${this.renderTabButton('alerts', 'Alertas WhatsApp')}` : '<span>Renová la suscripción para recuperar el acceso operativo.</span>'}
           ${this.renderTabButton('team', 'Usuarios y Suscripción')}
-          ${this.renderTabButton('whatsapp', 'Vincular Móvil QR')}
-          ${isUltra ? this.renderTabButton('ai', '✨ Asistente IA (Ultra)') : ''}
+          ${this.tenantContext.operationalAccess !== false ? this.renderTabButton('whatsapp', 'Vincular Móvil QR') : ''}
+          ${this.tenantContext.operationalAccess !== false && isUltra && this.client.askAiAssistant ? this.renderTabButton('ai', '✨ Asistente IA (Ultra)') : ''}
         </nav>
 
         <!-- Main Content -->
@@ -137,7 +143,7 @@ export class AppView {
                 ? 'background:#dcfce7;color:#166534;border:1px solid #86efac;'
                 : 'background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;'
             }">
-              <span>${this.feedbackBanner.text}</span>
+              <span>${escapeHtml(this.feedbackBanner.text)}</span>
               <button id="close-banner" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
             </div>
           ` : ''}
@@ -305,25 +311,25 @@ export class AppView {
                 <td style="padding:0.75rem 1rem;">
                   ${
                     inv.status === 'IN_GRID' && canOperatePayments
-                      ? `<input type="checkbox" class="invoice-checkbox" data-id="${inv.id}" ${
+                      ? `<input type="checkbox" class="invoice-checkbox" data-id="${escapeHtml(inv.id)}" ${
                           this.selectedInvoiceIds.has(inv.id) ? 'checked' : ''
                         }/>`
                       : ''
                   }
                 </td>
                 <td style="padding:0.75rem 1rem;font-weight:600;">${formatDate(inv.dueDate)}</td>
-                <td style="padding:0.75rem 1rem;">${inv.supplierName}</td>
+                <td style="padding:0.75rem 1rem;">${escapeHtml(inv.supplierName)}</td>
                 <td style="padding:0.75rem 1rem;">
                   <span style="font-family:monospace;background:#f1f5f9;padding:0.125rem 0.375rem;border-radius:0.25rem;">
-                    ${inv.invoiceType} ${inv.invoiceNumber || '(Informal)'}
+                    ${escapeHtml(inv.invoiceType)} ${escapeHtml(inv.invoiceNumber || '(Informal)')}
                   </span>
                 </td>
                 <td style="padding:0.75rem 1rem;color:#64748b;">
-                  <div>${inv.description || '-'}</div>
+                  <div>${escapeHtml(inv.description || '-')}</div>
                   ${
                     inv.attachmentFileName
                       ? `<div style="margin-top:0.25rem;display:inline-flex;align-items:center;gap:0.25rem;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;padding:0.1rem 0.45rem;border-radius:0.25rem;font-size:0.7rem;font-weight:600;" title="Comprobante adjunto almacenado en S3 privado">
-                          📎 ${inv.attachmentFileName}
+                          📎 ${escapeHtml(inv.attachmentFileName)}
                         </div>`
                       : ''
                   }
@@ -332,13 +338,13 @@ export class AppView {
                 <td style="padding:0.75rem 1rem;text-align:center;">${this.renderInvoiceStatusBadge(inv.status)}</td>
                 <td style="padding:0.75rem 1rem;text-align:right;">
                   ${
-                    inv.status === 'PENDING_REVIEW' && this.tenantContext?.userRole === 'ADMIN'
-                      ? `<button class="btn-confirm-draft" data-id="${inv.id}" style="background:#16a34a;color:white;border:none;padding:0.25rem 0.6rem;border-radius:0.25rem;font-size:0.75rem;font-weight:600;cursor:pointer;margin-right:0.25rem;">Confirmar a Grilla</button>`
+                    this.client.confirmDraftInvoice && inv.status === 'PENDING_REVIEW' && this.tenantContext?.userRole === 'ADMIN'
+                      ? `<button class="btn-confirm-draft" data-id="${escapeHtml(inv.id)}" style="background:#16a34a;color:white;border:none;padding:0.25rem 0.6rem;border-radius:0.25rem;font-size:0.75rem;font-weight:600;cursor:pointer;margin-right:0.25rem;">Confirmar a Grilla</button>`
                       : ''
                   }
                   ${
-                    inv.status !== 'PAID' && inv.status !== 'CANCELLED' && this.tenantContext?.userRole === 'ADMIN'
-                      ? `<button class="btn-cancel-invoice" data-id="${inv.id}" style="background:#fee2e2;color:#991b1b;border:none;padding:0.25rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;cursor:pointer;">Anular</button>`
+                    this.client.cancelInvoice && inv.status !== 'PAYMENT_PROPOSED' && inv.status !== 'PAID' && inv.status !== 'CANCELLED' && this.tenantContext?.userRole === 'ADMIN'
+                      ? `<button class="btn-cancel-invoice" data-id="${escapeHtml(inv.id)}" style="background:#fee2e2;color:#991b1b;border:none;padding:0.25rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;cursor:pointer;">Anular</button>`
                       : ''
                   }
                 </td>
@@ -364,15 +370,15 @@ export class AppView {
         <!-- Local File Upload Bar -->
         <div style="background:#f8fafc;border:1px dashed #94a3b8;border-radius:0.5rem;padding:0.875rem 1rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;">
           <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-            <input type="file" id="invoice-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" style="display:none;" />
-            <button type="button" id="btn-pick-local-file" style="background:#0f172a;color:white;padding:0.45rem 0.9rem;border:none;border-radius:0.375rem;font-size:0.8125rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;">
+            <input type="file" ${!this.client.setDemoPlanAndRole ? 'disabled' : ''} id="invoice-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" style="display:none;" />
+            <button type="button" ${!this.client.setDemoPlanAndRole ? 'disabled title="Carga de archivos pendiente de habilitación"' : ''} id="btn-pick-local-file" style="background:#0f172a;color:white;padding:0.45rem 0.9rem;border:none;border-radius:0.375rem;font-size:0.8125rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;">
               📂 Subir Factura / Comprobante desde carpeta local
             </button>
             ${
               fileInfo
                 ? `
               <span style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;padding:0.3rem 0.65rem;border-radius:0.375rem;font-size:0.8125rem;font-weight:600;">
-                📎 ${fileInfo.name} (${sizeKb} KB)
+                📎 ${escapeHtml(fileInfo.name)} (${sizeKb} KB)
               </span>
               <button type="button" id="btn-ocr-autofill" style="background:#7c3aed;color:white;padding:0.35rem 0.75rem;border:none;border-radius:0.375rem;font-size:0.75rem;font-weight:600;cursor:pointer;">
                 ✨ Extraer datos con OCR
@@ -395,7 +401,7 @@ export class AppView {
           <div>
             <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Proveedor *</label>
             <select name="supplierId" required style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;">
-              ${this.suppliers.map((s) => `<option value="${s.id}">${s.businessName} (${s.categoryName || 'Sin Clasificar'})</option>`).join('')}
+              ${this.suppliers.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.businessName)} (${escapeHtml(s.categoryName || 'Sin Clasificar')})</option>`).join('')}
             </select>
           </div>
           <div>
@@ -454,9 +460,9 @@ export class AppView {
               .map(
                 (b) => `
               <tr style="border-bottom:1px solid #f1f5f9;">
-                <td style="padding:0.5rem;font-family:monospace;">${b.batchId}</td>
-                <td style="padding:0.5rem;">${b.proposedAt}</td>
-                <td style="padding:0.5rem;">${b.proposedByRole}</td>
+                <td style="padding:0.5rem;font-family:monospace;">${escapeHtml(b.batchId)}</td>
+                <td style="padding:0.5rem;">${escapeHtml(b.proposedAt)}</td>
+                <td style="padding:0.5rem;">${escapeHtml(b.proposedByRole ?? 'No registrado')}</td>
                 <td style="padding:0.5rem;">${b.invoiceIds.length} ítem(s)</td>
                 <td style="padding:0.5rem;text-align:right;font-weight:700;">${formatCurrency(b.totalInCents)}</td>
                 <td style="padding:0.5rem;text-align:center;">
@@ -467,18 +473,18 @@ export class AppView {
                       ? 'background:#dbeafe;color:#1e40af;'
                       : 'background:#fee2e2;color:#991b1b;'
                   }">
-                    ${b.status}${b.reversalReason ? ` (${b.reversalReason})` : ''}
+                    ${escapeHtml(b.status)}${b.reversalReason ? ` (${escapeHtml(b.reversalReason)})` : ''}
                   </span>
                 </td>
                 <td style="padding:0.5rem;text-align:right;">
                   ${
                     b.status === 'PENDING_APPROVAL' && this.tenantContext?.userRole === 'ADMIN'
-                      ? `<button class="btn-approve-batch" data-batch="${b.batchId}" style="background:#16a34a;color:white;border:none;padding:0.25rem 0.6rem;border-radius:0.25rem;cursor:pointer;font-size:0.75rem;margin-right:0.25rem;">Aprobar Pago</button>`
+                      ? `<button class="btn-approve-batch" data-batch="${escapeHtml(b.batchId)}" style="background:#16a34a;color:white;border:none;padding:0.25rem 0.6rem;border-radius:0.25rem;cursor:pointer;font-size:0.75rem;margin-right:0.25rem;">Aprobar Pago</button>`
                       : ''
                   }
                   ${
                     (b.status === 'RECORDED' || b.status === 'PENDING_APPROVAL') && this.tenantContext?.userRole === 'ADMIN'
-                      ? `<button class="btn-reverse-batch" data-batch="${b.batchId}" style="background:#f1f5f9;color:#991b1b;border:1px solid #fca5a5;padding:0.25rem 0.6rem;border-radius:0.25rem;cursor:pointer;font-size:0.75rem;">Revertir</button>`
+                      ? `<button class="btn-reverse-batch" data-batch="${escapeHtml(b.batchId)}" style="background:#f1f5f9;color:#991b1b;border:1px solid #fca5a5;padding:0.25rem 0.6rem;border-radius:0.25rem;cursor:pointer;font-size:0.75rem;">Revertir</button>`
                       : ''
                   }
                 </td>
@@ -529,12 +535,12 @@ export class AppView {
           </div>
           <div>
             <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">CBU / CVU o Alias</label>
-            <input name="cbuCvuOrAlias" placeholder="MI.ALIAS.MP" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
+            <input name="cbuCvuOrAlias" ${!this.client.setDemoPlanAndRole ? 'disabled title="Datos bancarios pendientes de habilitación"' : ''} placeholder="MI.ALIAS.MP" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
           </div>
           <div>
             <label style="display:block;font-size:0.75rem;font-weight:600;color:#475569;margin-bottom:0.25rem;">Categoría Primaria *</label>
             <select name="categoryCode" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:0.375rem;">
-              ${INITIAL_CATEGORIES.map((c) => `<option value="${c.code}">${c.name}</option>`).join('')}
+              ${this.categories.map((c) => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.name)}</option>`).join('')}
             </select>
           </div>
           <div>
@@ -563,15 +569,15 @@ export class AppView {
               .map(
                 (s) => `
               <tr style="border-bottom:1px solid #f1f5f9;">
-                <td style="padding:0.75rem 1rem;font-weight:600;">${s.businessName}</td>
-                <td style="padding:0.75rem 1rem;color:#64748b;">${s.cuit || '-'}</td>
-                <td style="padding:0.75rem 1rem;">${s.mobilePhone}</td>
-                <td style="padding:0.75rem 1rem;font-family:monospace;color:#0369a1;">${s.cbuCvuOrAlias || '-'}</td>
+                <td style="padding:0.75rem 1rem;font-weight:600;">${escapeHtml(s.businessName)}</td>
+                <td style="padding:0.75rem 1rem;color:#64748b;">${escapeHtml(s.cuit || '-')}</td>
+                <td style="padding:0.75rem 1rem;">${escapeHtml(s.mobilePhone)}</td>
+                <td style="padding:0.75rem 1rem;font-family:monospace;color:#0369a1;">${escapeHtml(s.cbuCvuOrAlias || '-')}</td>
                 <td style="padding:0.75rem 1rem;">
                   <span style="background:${
                     s.categoryCode === 'SIN_CLASIFICAR' ? '#fef9c3;color:#854d0e;' : '#f1f5f9;color:#475569;'
                   };padding:0.25rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;font-weight:600;">
-                    ${s.categoryName || 'General'}
+                    ${escapeHtml(s.categoryName || 'General')}
                   </span>
                 </td>
               </tr>
@@ -603,12 +609,12 @@ export class AppView {
         <form id="form-grid-config" style="display:grid;gap:1rem;margin-top:1.25rem;">
           <div>
             <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:0.25rem;">Zona Horaria IANA</label>
-            <input name="timezone" value="${cfg.timezone}" ${!isAdmin ? 'disabled' : ''} style="width:100%;padding:0.5rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
+            <input name="timezone" value="${escapeHtml(cfg.timezone)}" ${!isAdmin ? 'disabled' : ''} style="width:100%;padding:0.5rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
             <div>
               <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:0.25rem;">Hora de Envío (HH:mm)</label>
-              <input name="notificationTime" value="${cfg.notificationTime}" ${!isAdmin ? 'disabled' : ''} placeholder="09:00" style="width:100%;padding:0.5rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
+              <input name="notificationTime" value="${escapeHtml(cfg.notificationTime)}" ${!isAdmin ? 'disabled' : ''} placeholder="09:00" style="width:100%;padding:0.5rem;border:1px solid #cbd5e1;border-radius:0.375rem;box-sizing:border-box;" />
             </div>
             <div>
               <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:0.25rem;">Anticipación (1 a 168 horas)</label>
@@ -664,17 +670,17 @@ export class AppView {
                 (m) => `
               <li style="padding:0.6rem 0;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;font-size:0.875rem;">
                 <div>
-                  <div style="font-weight:600;">${m.fullName}</div>
-                  <div style="font-size:0.75rem;color:#64748b;">${m.email}</div>
+                  <div style="font-weight:600;">${escapeHtml(m.fullName)}</div>
+                  <div style="font-size:0.75rem;color:#64748b;">${escapeHtml(m.email)}</div>
                 </div>
-                <span style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;font-weight:600;">${m.role}</span>
+                <span style="background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;font-weight:600;">${escapeHtml(m.role)}</span>
               </li>
             `,
               )
               .join('')}
           </ul>
           ${
-            isAdmin
+            isAdmin && this.client.inviteTeamMember
               ? `
             <form id="form-invite-member" style="display:grid;gap:0.6rem;border-top:1px solid #e2e8f0;padding-top:1rem;">
               <div style="font-size:0.8125rem;font-weight:600;">Agregar Operador</div>
@@ -695,6 +701,7 @@ export class AppView {
   }
 
   private renderWhatsAppTab(): string {
+    if (!this.client.setDemoPlanAndRole) return '<p>La vinculación con WhatsApp estará disponible cuando finalice la validación del canal del piloto.</p>';
     return `
       <div style="max-width:36rem;margin:0 auto;background:white;padding:2rem;border-radius:0.5rem;border:1px solid #e2e8f0;">
         <h2 style="font-size:1.25rem;font-weight:700;margin-top:0;">Vincular cuenta móvil con WhatsApp</h2>
@@ -731,8 +738,8 @@ export class AppView {
             .map(
               (m) => `
             <div style="background:white;padding:0.75rem 1rem;border-radius:0.375rem;border:1px solid #e2e8f0;">
-              <div style="font-size:0.75rem;font-weight:700;color:#0284c7;margin-bottom:0.25rem;">Consulta (${m.timestamp}): ${m.question}</div>
-              <div style="font-size:0.875rem;color:#1e293b;">${m.answer}</div>
+              <div style="font-size:0.75rem;font-weight:700;color:#0284c7;margin-bottom:0.25rem;">Consulta (${escapeHtml(m.timestamp)}): ${escapeHtml(m.question)}</div>
+              <div style="font-size:0.875rem;color:#1e293b;">${escapeHtml(m.answer)}</div>
             </div>
           `,
             )
@@ -908,6 +915,8 @@ export class AppView {
       try {
         const attachedName = this.selectedLocalFile?.name;
         const attachedMime = this.selectedLocalFile?.mimeType;
+        const supplier = this.suppliers.find(item => item.id === supplierId);
+        const confirmImmediately = this.tenantContext?.userRole === 'ADMIN' && !!supplier?.categoryCode && supplier.categoryCode !== 'SIN_CLASIFICAR';
         await this.client.createInvoice({
           supplierId,
           invoiceType,
@@ -915,7 +924,7 @@ export class AppView {
           description: description || (attachedName ? `Adjunto local: ${attachedName}` : undefined),
           amountInCents: BigInt(Math.round(amountPesos * 100)),
           dueDate,
-          confirmImmediately: this.tenantContext?.userRole === 'ADMIN',
+          confirmImmediately,
           attachmentFileName: attachedName,
           attachmentMimeType: attachedMime,
         });
@@ -924,7 +933,7 @@ export class AppView {
         await this.refreshData();
         this.showBanner(
           'success',
-          this.tenantContext?.userRole === 'ADMIN'
+          confirmImmediately
             ? `Factura registrada y confirmada en la grilla${attachedName ? ` (con archivo adjunto: ${attachedName})` : ''}.`
             : `Borrador cargado en estado PENDING_REVIEW${attachedName ? ` (con archivo adjunto: ${attachedName})` : ''}.`,
         );
@@ -1048,11 +1057,23 @@ export class AppView {
     });
 
     // Team invite & Checkout
-    this.container.querySelector('#btn-simulate-checkout')?.addEventListener('click', () => {
-      this.showBanner(
-        'success',
-        `Orden idempotente generada en servidor para plan ${this.tenantContext?.planCode}. En producción redirige a Mercado Pago Checkout Pro (/p/{token}).`,
-      );
+    this.container.querySelector('#btn-simulate-checkout')?.addEventListener('click', async (event) => {
+      if (!this.client.createSubscriptionCheckout) {
+        this.showBanner('success', 'Demostración local: no se creó ninguna orden real.');
+        return;
+      }
+      const button = event.currentTarget as HTMLButtonElement;
+      button.disabled = true;
+      try {
+        const result = await this.client.createSubscriptionCheckout(this.tenantContext!.planCode);
+        const url = new URL(result.checkoutUrl);
+        if (url.protocol !== 'https:' || !['www.mercadopago.com.ar', 'sandbox.mercadopago.com.ar'].includes(url.hostname)) {
+          throw new Error('El enlace de pago recibido no es válido.');
+        }
+        window.location.assign(url.href);
+      } catch (error) {
+        this.showBanner('error', error instanceof Error ? error.message : 'No se pudo iniciar la renovación.');
+      } finally { button.disabled = false; }
     });
 
     const inviteForm = this.container.querySelector('#form-invite-member') as HTMLFormElement | null;

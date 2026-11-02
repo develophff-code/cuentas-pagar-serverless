@@ -8,4 +8,5 @@ cdk.context.json
 coverage/
 src/generated/
 .lambda-build/
+.web-build/
 .npm-cache/

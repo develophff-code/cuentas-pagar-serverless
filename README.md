@@ -14,11 +14,20 @@ La solución permite administrar proveedores, comprobantes, facturas y pagos com
 
 ## Estado actual
 
-La **Fase A está cerrada**, la Fase B tiene su backend implementado en código
-y la **Fase C está en desarrollo**. El primer despliegue se orienta a un MVP
-con **dos tenants testigos** y un presupuesto objetivo de **USD 20/mes en AWS**,
-incluida la fundación del proyecto. El legado de Ohio y YCloud/WhatsApp se
-presupuestan por separado, según la decisión del 2026-10-13.
+La Fase A está cerrada. Las etapas 1 (datos) y 2 (backend de negocio) del MVP
+están desplegadas en dev. Las Fases D/E tienen implementación y demostraciones
+locales; la conexión web real y su infraestructura se prepararon el 2026-11-02.
+El dueño aprobó la actualización de `CuentasPagarBusiness-dev` con una reserva
+incremental estimada de USD 1/mes para publicación con tráfico pequeño,
+además del consumo de API/Aurora. El certificado ACM se validó correctamente,
+pero AWS rechazó crear CloudFront porque exige verificar la cuenta mediante
+AWS Support (HTTP 403). CloudFormation terminó la reversión
+(`UPDATE_ROLLBACK_COMPLETE`);
+la web todavía no está publicada. Ver el incidente y los pasos de reintento
+en la [guía de publicación](docs/PUBLICACION_WEB_MVP.md). El piloto conserva
+dos tenants testigos y el objetivo de USD 20/mes AWS, con legado de Ohio y
+YCloud/WhatsApp presupuestados por separado.
+
 **Etapa 1 del MVP desplegada el 2026-10-14 con aprobación del dueño:**
 `CuentasPagarFoundation-dev` (presupuesto filtrado por proyecto) y
 `CuentasPagarMvpData-dev` (VPC aislada, Aurora 16.15 de 0 a 1 ACU con Data API,
@@ -32,6 +41,22 @@ La pausa a 0 ACU se verificó (unos 10 minutos tras la última
 actividad) y las pruebas de aislamiento multi-tenant, idempotencia y
 transacciones contra Aurora (`npm run db:validate:aurora`) superaron las 10
 verificaciones en vivo.
+
+**Intento de publicación web del 2026-11-02:** el dueño cargó correctamente el
+CNAME de validación en Hostinger y ACM alcanzó `ISSUED`. A las 18:46 de Buenos
+Aires, CloudFront rechazó crear la distribución: “Your account must be
+verified before you can add new CloudFront resources”. CloudFormation inició
+rollback y terminó en `UPDATE_ROLLBACK_COMPLETE` a las 18:49 de Buenos Aires;
+las Lambdas y el cliente Cognito se revirtieron. Los archivos web
+se habían publicado en un bucket privado durante el intento, conservado por
+su política `RETAIN`. El certificado y el dominio de login nuevos se eliminaron
+durante la reversión; el User Pool existente se conservó. No existe todavía
+una distribución ni un destino CNAME para publicar `apagar`. Conservar el
+CNAME de validación; no modificar `@`, `www` ni el webhook legado.
+Las 97 pruebas locales pasaron; login y pruebas E2E en el dominio siguen
+pendientes. Antes de reintentar, resolver la verificación con AWS Support y
+revisar nuevamente la identidad, el diff y los recursos retenidos.
+
 Además, están implementadas y probadas localmente las **Fases D y E**:
 - **Fase D (Web SPA Profesional/Ultra):** panel ejecutivo (`packages/web`) con filtros de grilla, alta y clasificación de proveedores (con bloqueo de confirmación cuando el proveedor permanece en `SIN_CLASIFICAR`), alta/confirmación/cancelación de comprobantes, órdenes de pago por lote, configuración de alertas, membresías, simulación de renovación con Mercado Pago Checkout Pro, captura móvil por WhatsApp QR (`wa.me/5492646276709`) y selector interactivo de rol/plan.
 - **Fase E (Capacidades Ultra e IA):** flujo formal de propuestas de pago (`OPERATOR_PAYMENTS` -> `PENDING_APPROVAL`), aprobación por `ADMIN` con soporte de control dual opcional y reversa auditada de lotes (`REVERSED` con restitución de facturas a `IN_GRID`), política de confianza OCR para extracción documental y asistente conversacional IA de solo lectura con guardarraíles, cuota mensual y trazabilidad (`AiAssistantService`).
@@ -55,7 +80,7 @@ El despacho por SQS está preparado en código. El repositorio cuenta con:
 - Adaptador Prisma/Data API con parámetros SQL, decimales, fechas UTC y
   transacciones; pruebas locales con transporte simulado y cliente Prisma real.
 - Runner manual de migraciones por Data API con plan local, huellas SHA-256,
-  bloqueo concurrente y recibos transaccionales; todavía no ejecutado en AWS.
+  bloqueo concurrente y recibos transaccionales; migraciones 001–008 aplicadas en dev.
 - Convenciones de aislamiento para `dev`, `staging` y `prod`.
 - Cliente server-side de Checkout Pro y validación HMAC de webhooks de Mercado
   Pago, con pruebas unitarias y sin secretos versionados.
@@ -78,9 +103,13 @@ nuevo vencimiento después de renovar. Falta la URL aprobada del botón
 «Pagar Renovación» antes de activar el dispatcher. El emisor es
 `+5492646276709`; la API key se guarda exclusivamente en Secrets Manager.
 
-Todavía faltan el despliegue del backend de negocio, el frontend, la publicación
-de los dominios nuevos y las pruebas de compra de Mercado Pago. El webhook
+Faltan el despliegue del frontend preparado, la publicación de los dominios
+nuevos y las pruebas integrales y de compra de Mercado Pago. El webhook
 existente de YCloud permanece sin cambios hasta la migración aprobada.
+
+El alcance real de la conexión web, sus funciones pendientes, costos y pasos
+DNS están en [Publicación web MVP](docs/PUBLICACION_WEB_MVP.md). Las capacidades
+mostradas por el simulador local no implican que estén integradas en AWS.
 
 ## Documentación clave
 
@@ -176,19 +205,13 @@ validada.
 
 ## Próximo paso
 
-Completar la validación del runner, aislamiento, idempotencia y transacciones
-contra Aurora. Revisar el costo total de los dos tenants testigos y pedir
-aprobación antes de desplegar.
+Solicitar a AWS Support la verificación de la cuenta para crear recursos
+CloudFront. El error, Request ID y alcance están en la
+[guía de publicación](docs/PUBLICACION_WEB_MVP.md). El DNS de validación ya
+resuelve correctamente; no reemplazarlo ni crear aún un CNAME `apagar`.
 
-La revisión de costos del 2026-10-13 está documentada con escenarios de uso.
-La consulta de la cuenta mostró USD 34,14 de consumo en septiembre antes de
-créditos, con un servicio legado activo en Ohio. El dueño confirmó USD 20 para
-Cuentas a Pagar y legado aparte. CDK prepara el filtro de presupuesto por
-`Application=cuentas-pagar` y `Environment=dev`; las claves de costo aún están
-inactivas y el presupuesto remoto sigue abarcando la cuenta. Todavía no hay
-autorización de despliegue. Aurora estándar 16.6 ya no aparece disponible para creación: el
-perfil MVP local prepara 16.15, con disponibilidad y capacidad mínima 0 verificadas.
-
-Después de aprobar el despliegue, publicar `/p/{token}` bajo
-`apagar.averiqsj.app`, configurar el webhook Mercado Pago, completar el contrato
-de las plantillas YCloud y ejecutar las pruebas de compra y notificaciones.
+Cuando AWS levante la restricción y la stack termine su rollback, revisar
+identidad y diff y reintentar únicamente `CuentasPagarBusiness-dev`, con jobs
+desactivados y perfil MVP sin Proxy/NAT. Después publicar el CNAME de
+CloudFront, verificar login/aislamiento y completar credenciales y pruebas
+de Mercado Pago/YCloud. Git sigue siendo manual por el dueño.

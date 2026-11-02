@@ -25,6 +25,12 @@ const server = createServer(async (req, res) => {
   }
 
   try {
+    if (urlPath === '/app-config.json') {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify({ mode: 'demo' }));
+      return;
+    }
     const data = urlPath === '/index.html'
       ? await readFile(SOURCE_INDEX).catch(() => readFile(filePath))
       : await readFile(filePath);

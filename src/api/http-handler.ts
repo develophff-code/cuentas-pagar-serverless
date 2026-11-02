@@ -5,6 +5,7 @@ import type { PaymentBatchResult } from '../persistence/payment-batch-service.js
 import type { PaymentGridConfiguration, PaymentGridEntry } from '../persistence/payment-grid-service.js';
 import type { SupplierActor } from '../persistence/supplier-service.js';
 import type { ApiGatewayRequest, ApiGatewayResponse } from './http-types.js';
+import type { WebQueryService } from '../persistence/web-query-service.js';
 
 export interface AuthenticatedActor {
   tenantId: string;
@@ -13,6 +14,7 @@ export interface AuthenticatedActor {
 }
 
 export interface ApiDependencies {
+  webQueries?: WebQueryService;
   registerWebTenant(input: {
     businessName: string;
     cuit?: string;
@@ -104,7 +106,7 @@ export interface ApiDependencies {
   }, idempotencyKey: string): Promise<PaymentGridConfiguration>;
 }
 
-const jsonHeaders = { 'content-type': 'application/json; charset=utf-8' };
+const jsonHeaders = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' };
 
 function response(statusCode: number, payload: object): ApiGatewayResponse {
   return { statusCode, headers: jsonHeaders, body: JSON.stringify(payload) };
@@ -131,7 +133,12 @@ function authenticatedIdentity(request: ApiGatewayRequest): { sub: string; email
 }
 
 function tenantId(request: ApiGatewayRequest): string {
-  const id = request.pathParameters?.tenantId?.trim();
+  // The REST API {proxy+} integration supplies only `proxy`.
+  const pathId = /^\/v1\/tenants\/([^/]+)\//.exec(request.path)?.[1];
+  const id = pathId ?? request.pathParameters?.tenantId?.trim();
+  if (pathId && request.pathParameters?.tenantId && pathId !== request.pathParameters.tenantId) {
+    throw new DomainRuleViolation('El tenant de la ruta no coincide.');
+  }
   if (!id) throw new DomainRuleViolation('El tenant de la ruta es obligatorio.');
   return id;
 }
@@ -197,6 +204,10 @@ export function createHttpHandler(dependencies: ApiDependencies) {
   return async (request: ApiGatewayRequest): Promise<ApiGatewayResponse> => {
     try {
       const payload = request.httpMethod === 'GET' ? {} : body(request);
+      if (request.httpMethod === 'GET' && request.path === '/v1/me/tenants' && dependencies.webQueries) {
+        const identity = authenticatedIdentity(request);
+        return response(200, { items: await dependencies.webQueries.memberships(identity.sub) });
+      }
       if (request.httpMethod === 'POST' && request.path === '/v1/onboarding/web') {
         const identity = authenticatedIdentity(request);
         const planCode = stringValue(payload, 'planCode', true);
@@ -216,8 +227,29 @@ export function createHttpHandler(dependencies: ApiDependencies) {
         return response(201, result);
       }
 
+      if (!/^\/v1\/tenants\/[^/]+\/(context|categories|suppliers|invoices|payment-grid(?:\/configuration)?|payment-batches(?:\/[^/]+\/(?:approve|reverse))?|members|subscription-orders|ai\/query)$/.test(request.path)) {
+        return response(404, { error: 'NOT_FOUND', message: 'Ruta no encontrada.' });
+      }
       const requestTenantId = tenantId(request);
       const identity = authenticatedIdentity(request);
+
+      if (request.httpMethod === 'GET' && dependencies.webQueries) {
+        const endpoint = request.path.split('/').slice(4).join('/');
+        const queries = dependencies.webQueries;
+        const roles: MembershipRole[] = endpoint === 'members' ? ['ADMIN'] : ['ADMIN', 'OPERATOR_UPLOAD', 'OPERATOR_PAYMENTS'];
+        if (['context', 'categories', 'suppliers', 'invoices', 'payment-grid/configuration', 'payment-batches', 'members'].includes(endpoint)) {
+          const actor = endpoint === 'context'
+            ? await dependencies.authorizeSubscriptionRenewal(identity.sub, requestTenantId, roles)
+            : await dependencies.authorizeOperational(identity.sub, requestTenantId, roles);
+          if (endpoint === 'context') return response(200, await queries.context(actor));
+          if (endpoint === 'categories') return response(200, { items: await queries.categories() });
+          if (endpoint === 'suppliers') return response(200, { items: await queries.suppliers(actor) });
+          if (endpoint === 'invoices') return response(200, { items: await queries.invoices(actor) });
+          if (endpoint === 'payment-grid/configuration') return response(200, await queries.configuration(actor));
+          if (endpoint === 'payment-batches') return response(200, { items: await queries.batches(actor) });
+          return response(200, { items: await queries.members(actor) });
+        }
+      }
 
       if (request.httpMethod === 'GET' && request.path.endsWith('/payment-grid')) {
         const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN', 'OPERATOR_PAYMENTS']);
@@ -316,7 +348,7 @@ export function createHttpHandler(dependencies: ApiDependencies) {
 
       if (request.httpMethod === 'POST' && request.path.endsWith('/approve') && dependencies.approvePaymentBatch) {
         const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN']);
-        const batchId = request.pathParameters?.batchId?.trim() ?? stringValue(payload, 'batchId', true)!;
+        const batchId = request.path.split('/')[5]!;
         const result = await dependencies.approvePaymentBatch({
           tenantId: requestTenantId,
           batchId,
@@ -330,7 +362,7 @@ export function createHttpHandler(dependencies: ApiDependencies) {
 
       if (request.httpMethod === 'POST' && request.path.endsWith('/reverse') && dependencies.reversePaymentBatch) {
         const actor = await dependencies.authorizeOperational(identity.sub, requestTenantId, ['ADMIN']);
-        const batchId = request.pathParameters?.batchId?.trim() ?? stringValue(payload, 'batchId', true)!;
+        const batchId = request.path.split('/')[5]!;
         const reason = stringValue(payload, 'reason', true)!;
         const result = await dependencies.reversePaymentBatch({
           tenantId: requestTenantId,

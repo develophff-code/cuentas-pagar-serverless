@@ -11,6 +11,7 @@ import { MercadoPagoRuntimeGateway } from '../subscriptions/mercado-pago-runtime
 import { SubscriptionCheckoutService } from '../subscriptions/subscription-checkout-service.js';
 import { createHttpHandler } from './http-handler.js';
 import type { ApiGatewayRequest, ApiGatewayResponse } from './http-types.js';
+import { WebQueryService } from '../persistence/web-query-service.js';
 
 async function createHandler() {
   const prisma = await getRuntimePrismaClient();
@@ -27,6 +28,7 @@ async function createHandler() {
   });
 
   return createHttpHandler({
+    webQueries: new WebQueryService(prisma),
     registerWebTenant: (input) => tenantService.registerWebTenant(input),
     authorizeOperational: (cognitoSub, tenantId, allowedRoles) =>
       authorization.authorizeOperational(cognitoSub, tenantId, allowedRoles),

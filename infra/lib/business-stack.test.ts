@@ -17,7 +17,12 @@ test('negocio conecta Aurora privado, autentica v1 y publica tokens sin caché; 
     runtimeConfig: runtimeConfig as unknown as secretsmanager.ISecret,
     runtimeConfigEncryptionKeyArn: 'arn:aws:kms:us-east-1:123456789012:key/fixture', publicDomain: 'apagar.averiqsj.app' });
   const template = Template.fromStack(business);
-  template.resourceCountIs('AWS::Lambda::Function', 5);
+  // Five business functions plus CDK's web asset deployment provider.
+  template.resourceCountIs('AWS::S3::Bucket', 1);
+  template.hasResourceProperties('AWS::S3::Bucket', { PublicAccessBlockConfiguration: {
+    BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true,
+  } });
+  template.resourceCountIs('AWS::CloudFront::OriginAccessControl', 1);
   template.hasResourceProperties('AWS::Lambda::Function', {
     Handler: 'src/jobs/notification-dispatch-job.handler',
     VpcConfig: { SecurityGroupIds: Match.anyValue(), SubnetIds: Match.anyValue() },
@@ -30,7 +35,16 @@ test('negocio conecta Aurora privado, autentica v1 y publica tokens sin caché; 
     Aliases: ['apagar.averiqsj.app'], DefaultCacheBehavior: Match.objectLike({
       CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
     }),
+    DefaultRootObject: 'index.html',
+    CacheBehaviors: Match.arrayWith(['v1/*', 'api/*', 'p/*', 'subscription/payment/*'].map(PathPattern => Match.objectLike({
+      PathPattern, CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
+      OriginRequestPolicyId: 'b689b0a8-53d0-40ab-baf2-68738e2966ac',
+    }))),
   }) });
+  template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+    GenerateSecret: false, AllowedOAuthFlows: ['code'],
+    CallbackURLs: ['https://apagar.averiqsj.app/'], LogoutURLs: ['https://apagar.averiqsj.app/'],
+  });
   Template.fromStack(data).resourceCountIs('AWS::EC2::NatGateway', 1);
 });
 
